@@ -14,11 +14,16 @@ X = df.drop("label", axis=1)
 y = df["label"]
 
 # Train-test split
+# Train-test split
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=42
 )
 
 print("Data split done")
+
+# 👉 ADD THIS
+print("Feature Names:")
+print(X.columns.tolist())
 
 # Train model
 model = RandomForestClassifier(n_estimators=100)
