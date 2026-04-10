@@ -1,65 +1,991 @@
 <!DOCTYPE html>
-<html>
+<html lang="en" data-theme="dark">
 <head>
-    <title>Phishing URL Detector</title>
-    <style>
-        body {
-            font-family: Arial;
-            text-align: center;
-            margin-top: 100px;
-            background: #d29494;
-        }
-        input {
-            width: 300px;
-            padding: 10px;
-        }
-        button {
-            padding: 10px 20px;
-            background: #007BFF;
-            color: white;
-            border: none;
-        }
-        #result {
-            margin-top: 20px;
-            font-size: 20px;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PhishGuard - Phishing URL Detector</title>
+
+  <link rel="preconnect" href="https://api.fontshare.com" />
+  <link
+    href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&display=swap"
+    rel="stylesheet"
+  />
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    :root, [data-theme="light"] {
+      --bg: #f6f7fb;
+      --surface: #ffffff;
+      --surface-2: #f0f4f8;
+      --text: #17212b;
+      --muted: #6b7280;
+      --border: #d7dce3;
+      --primary: #0f766e;
+      --primary-hover: #115e59;
+      --safe: #1f9d55;
+      --safe-bg: rgba(31, 157, 85, 0.12);
+      --danger: #dc2626;
+      --danger-bg: rgba(220, 38, 38, 0.12);
+      --warning: #f59e0b;
+      --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+      --radius: 18px;
+    }
+
+    [data-theme="dark"] {
+      --bg: #0b1220;
+      --surface: #111827;
+      --surface-2: #1b2435;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --border: #263246;
+      --primary: #14b8a6;
+      --primary-hover: #0d9488;
+      --safe: #22c55e;
+      --safe-bg: rgba(34, 197, 94, 0.16);
+      --danger: #f43f5e;
+      --danger-bg: rgba(244, 63, 94, 0.16);
+      --warning: #fbbf24;
+      --shadow: 0 16px 44px rgba(0, 0, 0, 0.35);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: "Satoshi", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(20, 184, 166, 0.12), transparent 25%),
+        radial-gradient(circle at bottom right, rgba(244, 63, 94, 0.10), transparent 22%),
+        var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    .container {
+      width: min(1180px, 92%);
+      margin: auto;
+    }
+
+    .navbar {
+      margin-top: 18px;
+      padding: 14px 18px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      position: sticky;
+      top: 10px;
+      z-index: 100;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--primary), #38bdf8);
+      color: white;
+      font-size: 22px;
+      font-weight: 800;
+    }
+
+    .brand-text h2 {
+      font-size: 1.1rem;
+      line-height: 1.1;
+    }
+
+    .brand-text p {
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .nav-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn,
+    .theme-toggle {
+      border: none;
+      cursor: pointer;
+      border-radius: 999px;
+      padding: 12px 18px;
+      font-weight: 700;
+      transition: 0.25s ease;
+      min-height: 44px;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+    }
+
+    .btn-outline,
+    .theme-toggle {
+      background: var(--surface-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-outline:hover,
+    .theme-toggle:hover {
+      transform: translateY(-1px);
+    }
+
+    .hero {
+      padding: 56px 0 24px;
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 28px;
+      align-items: center;
+    }
+
+    .hero h1 {
+      font-size: clamp(2rem, 4vw, 3.6rem);
+      line-height: 1.08;
+      margin-bottom: 16px;
+      letter-spacing: -0.03em;
+      max-width: 11ch;
+    }
+
+    .hero-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .pill {
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .hero-card,
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .hero-card {
+      padding: 22px;
+    }
+
+    .window {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 18px;
+    }
+
+    .window-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .dots {
+      display: flex;
+      gap: 7px;
+    }
+
+    .dots span {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .dots span:nth-child(1) { background: #ff5f57; }
+    .dots span:nth-child(2) { background: #febc2e; }
+    .dots span:nth-child(3) { background: #28c840; }
+
+    .scan-form {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+    }
+
+    .scan-form input {
+      width: 100%;
+      min-height: 52px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      padding: 0 16px;
+      outline: none;
+      font-size: 1rem;
+    }
+
+    .scan-form input:focus {
+      border-color: var(--primary);
+    }
+
+    .result-row {
+      margin-top: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .status-safe {
+      background: var(--safe-bg);
+      color: var(--safe);
+    }
+
+    .status-danger {
+      background: var(--danger-bg);
+      color: var(--danger);
+    }
+
+    .status-muted {
+      background: var(--surface-2);
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+
+    .spinner-box {
+      display: none;
+      align-items: center;
+      gap: 12px;
+      margin-top: 14px;
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: rgba(59, 130, 246, 0.08);
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+
+    .spinner {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 3px solid rgba(255,255,255,0.18);
+      border-top-color: var(--primary);
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 24px;
+      margin-top: 26px;
+    }
+
+    .card {
+      padding: 22px;
+    }
+
+    .card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+
+    .card-head h2 {
+      font-size: 1.35rem;
+      line-height: 1.2;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 0.96rem;
+    }
+
+    .history-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .history-item {
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .history-item strong {
+      display: block;
+      word-break: break-all;
+      margin-bottom: 4px;
+      font-size: 0.98rem;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .stat-box {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 16px;
+    }
+
+    .stat-box span {
+      display: block;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .stat-box strong {
+      font-size: 1.7rem;
+      font-weight: 900;
+    }
+
+    .bottom-grid {
+      display: grid;
+      grid-template-columns: 0.9fr 1.1fr;
+      gap: 24px;
+      margin-top: 24px;
+      margin-bottom: 40px;
+      align-items: start;
+    }
+
+    .login-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      padding: 22px;
+    }
+
+    .auth-toggle {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      padding: 6px;
+      border-radius: 999px;
+      margin-top: 10px;
+      margin-bottom: 18px;
+    }
+
+    .toggle-btn {
+      border: none;
+      background: transparent;
+      color: var(--text);
+      padding: 12px 14px;
+      border-radius: 999px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.25s ease;
+    }
+
+    .toggle-btn.active {
+      background: var(--primary);
+      color: white;
+      box-shadow: var(--shadow);
+    }
+
+    .auth-form {
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .auth-form.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .field {
+      margin-top: 14px;
+    }
+
+    .field label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 700;
+      font-size: 0.96rem;
+    }
+
+    .field input {
+      width: 100%;
+      min-height: 50px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--text);
+      padding: 0 14px;
+      outline: none;
+    }
+
+    .field input:focus {
+      border-color: var(--primary);
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .input-message {
+      margin-top: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    .input-message.success {
+      color: var(--safe);
+    }
+
+    .input-message.error {
+      color: var(--danger);
+    }
+
+    .feature-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .feature-item {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 14px 16px;
+    }
+
+    .feature-item h3 {
+      font-size: 1rem;
+      margin-bottom: 4px;
+    }
+
+    @media (max-width: 980px) {
+      .hero,
+      .main-grid,
+      .bottom-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .scan-form,
+      .two-col {
+        grid-template-columns: 1fr;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hero h1 {
+        max-width: 100%;
+      }
+    }
+  </style>
 </head>
 <body>
 
-    <h1>🔐 Phishing URL Detector</h1>
+  <div class="container">
+    <nav class="navbar">
+      <div class="brand">
+        <div class="logo">🛡</div>
+        <div class="brand-text">
+          <h2>PhishGuard</h2>
+          <p>AI-Powered URL Security Frontend</p>
+        </div>
+      </div>
 
-    <input type="text" id="url" placeholder="Enter URL">
-    <br><br>
-    <button onclick="checkURL()">Check</button>
+      <div class="nav-actions">
+        <button class="btn btn-outline">Render Ready</button>
+        <button class="btn btn-outline">Railway Ready</button>
+        <button class="theme-toggle" id="themeToggle">🌙</button>
+      </div>
+    </nav>
 
-    <div id="result"></div>
+    <section class="hero">
+      <div>
+        <h1>Check URLs. Detect threats. Track user activity.</h1>
 
-   <script>
-async function checkURL() {
-    const url = document.getElementById("url").value;
+        <div style="display:flex; gap:12px; flex-wrap:wrap;">
+          <button class="btn btn-primary" onclick="document.getElementById('scanner').scrollIntoView({behavior:'smooth'})">Open Scanner</button>
+          <button class="btn btn-outline" onclick="document.getElementById('dashboard').scrollIntoView({behavior:'smooth'})">View Dashboard</button>
+        </div>
 
-    try {
+        <div class="hero-tags">
+          <span class="pill">Green = Safe</span>
+          <span class="pill">Red = Phishing</span>
+          <span class="pill">Login UI Ready</span>
+          <span class="pill">History Included</span>
+        </div>
+      </div>
+
+      <div class="hero-card">
+        <div class="window">
+          <div class="window-head">
+            <span>Live URL Scan</span>
+            <div class="dots">
+              <span></span><span></span><span></span>
+            </div>
+          </div>
+
+          <div class="scan-form" id="scanner">
+            <input type="text" id="urlInput" placeholder="Enter URL, e.g. https://example.com/login" />
+            <button class="btn btn-primary" onclick="checkURL()">Check URL</button>
+          </div>
+
+          <div class="result-row">
+            <div id="result" class="status-badge status-muted">Waiting for scan</div>
+            <div class="muted">Backend API: /predict</div>
+          </div>
+
+          <div class="spinner-box" id="loadingBox">
+            <div class="spinner"></div>
+            <span>Scanning URL and waiting for backend response...</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="main-grid">
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <h2>Recent Checked URLs</h2>
+            <p class="muted">User history area for previously scanned links.</p>
+          </div>
+          <div class="status-badge status-muted">History</div>
+        </div>
+
+        <div class="history-list" id="historyList">
+          <div class="history-item">
+            <div>
+              <strong>https://www.google.com</strong>
+              <span class="muted">Checked just now</span>
+            </div>
+            <span class="status-badge status-safe">Safe</span>
+          </div>
+
+          <div class="history-item">
+            <div>
+              <strong>http://secure-login-update-paypal.xyz</strong>
+              <span class="muted">Checked 5 min ago</span>
+            </div>
+            <span class="status-badge status-danger">Phishing</span>
+          </div>
+
+          <div class="history-item">
+            <div>
+              <strong>https://github.com</strong>
+              <span class="muted">Checked 12 min ago</span>
+            </div>
+            <span class="status-badge status-safe">Safe</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" id="dashboard">
+        <div class="card-head">
+          <div>
+            <h2>Detection Dashboard</h2>
+            <p class="muted">Safe vs phishing percentage with graph.</p>
+          </div>
+          <div class="status-badge status-muted">Stats</div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-box">
+            <span>Total Scans</span>
+            <strong id="totalScans">128</strong>
+          </div>
+          <div class="stat-box">
+            <span>Safe URLs</span>
+            <strong id="safeCount">82</strong>
+          </div>
+          <div class="stat-box">
+            <span>Phishing URLs</span>
+            <strong id="phishingCount">46</strong>
+          </div>
+          <div class="stat-box">
+            <span>Threat Rate</span>
+            <strong id="threatRate">35.9%</strong>
+          </div>
+        </div>
+
+        <canvas id="statsChart" height="220"></canvas>
+      </div>
+    </section>
+
+    <section class="bottom-grid">
+      <div class="login-box">
+        <div class="card-head" style="margin-bottom: 8px;">
+          <div>
+            <h2>Login / Register</h2>
+            <p class="muted">Switch between login and register forms.</p>
+          </div>
+          <div class="status-badge status-muted">Auth</div>
+        </div>
+
+        <div class="auth-toggle">
+          <button class="toggle-btn active" id="loginTab" onclick="showAuthForm('login')">Login</button>
+          <button class="toggle-btn" id="registerTab" onclick="showAuthForm('register')">Register</button>
+        </div>
+
+        <form id="loginForm" class="auth-form active">
+          <div class="field">
+            <label for="loginEmail">Email</label>
+            <input type="email" id="loginEmail" placeholder="Enter your email" />
+          </div>
+
+          <div class="field">
+            <label for="loginPassword">Password</label>
+            <input type="password" id="loginPassword" placeholder="Enter your password" />
+          </div>
+
+          <div style="margin-top:16px;">
+            <button type="button" class="btn btn-primary" style="width:100%;">Login</button>
+          </div>
+        </form>
+
+        <form id="registerForm" class="auth-form">
+          <div class="two-col">
+            <div class="field">
+              <label for="firstName">First Name</label>
+              <input type="text" id="firstName" placeholder="Enter first name" />
+            </div>
+
+            <div class="field">
+              <label for="lastName">Last Name</label>
+              <input type="text" id="lastName" placeholder="Enter last name" />
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="registerEmail">Email Address</label>
+            <input type="email" id="registerEmail" placeholder="Enter email address" />
+          </div>
+
+          <div class="field">
+            <label for="phoneNumber">Phone Number</label>
+            <input type="tel" id="phoneNumber" placeholder="Enter phone number" />
+          </div>
+
+          <div class="field">
+            <label for="dob">DOB</label>
+            <input type="date" id="dob" />
+          </div>
+
+          <div class="field">
+            <label for="registerPassword">Password</label>
+            <input type="password" id="registerPassword" placeholder="Create password" />
+          </div>
+
+          <div class="field">
+            <label for="confirmPassword">Confirm Password</label>
+            <input type="password" id="confirmPassword" placeholder="Confirm password" oninput="validatePasswords()" />
+            <div id="passwordMessage" class="input-message"></div>
+          </div>
+
+          <div style="margin-top:16px;">
+            <button type="button" class="btn btn-primary" style="width:100%;" onclick="registerUser()">Register</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <h2>Product Features Included</h2>
+          </div>
+        </div>
+
+        <div class="feature-list">
+          <div class="feature-item">
+            <h3>🌐 Deployment-ready frontend</h3>
+            <p class="muted">Use this UI with a backend hosted on Render or Railway.</p>
+          </div>
+
+          <div class="feature-item">
+            <h3>🎨 Improved modern UI</h3>
+            <p class="muted">Clean colors, responsive layout, status pills, and card-based design.</p>
+          </div>
+
+          <div class="feature-item">
+            <h3>🔐 Login and Register toggle</h3>
+            <p class="muted">Users can switch between login and register forms in one section.</p>
+          </div>
+
+          <div class="feature-item">
+            <h3>📊 Dashboard with graph</h3>
+            <p class="muted">Shows safe and phishing counts plus a chart for quick analysis.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const historyData = [
+      { url: "https://www.google.com", status: "Safe", time: "Checked just now" },
+      { url: "http://secure-login-update-paypal.xyz", status: "Phishing", time: "Checked 5 min ago" },
+      { url: "https://github.com", status: "Safe", time: "Checked 12 min ago" }
+    ];
+
+    const stats = {
+      total: 128,
+      safe: 82,
+      phishing: 46
+    };
+
+    const result = document.getElementById("result");
+    const loadingBox = document.getElementById("loadingBox");
+    const historyList = document.getElementById("historyList");
+    const themeToggle = document.getElementById("themeToggle");
+
+    function renderHistory() {
+      historyList.innerHTML = historyData.map(item => `
+        <div class="history-item">
+          <div>
+            <strong>${item.url}</strong>
+            <span class="muted">${item.time}</span>
+          </div>
+          <span class="status-badge ${item.status === 'Safe' ? 'status-safe' : 'status-danger'}">${item.status}</span>
+        </div>
+      `).join("");
+    }
+
+    function updateStats(status) {
+      stats.total++;
+      if (status === "Safe") stats.safe++;
+      else stats.phishing++;
+
+      document.getElementById("totalScans").textContent = stats.total;
+      document.getElementById("safeCount").textContent = stats.safe;
+      document.getElementById("phishingCount").textContent = stats.phishing;
+      document.getElementById("threatRate").textContent =
+        ((stats.phishing / stats.total) * 100).toFixed(1) + "%";
+
+      chart.data.datasets[0].data = [stats.safe, stats.phishing];
+      chart.update();
+    }
+
+    async function checkURL() {
+      const url = document.getElementById("urlInput").value.trim();
+
+      if (!url) {
+        result.className = "status-badge status-danger";
+        result.textContent = "Enter a URL first";
+        return;
+      }
+
+      loadingBox.style.display = "flex";
+      result.className = "status-badge status-muted";
+      result.textContent = "Checking...";
+
+      try {
         const response = await fetch("http://127.0.0.1:5000/predict", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ url: url })
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ url: url })
         });
 
         const data = await response.json();
+        const rawPrediction = String(data.prediction || "").toLowerCase();
+        const finalPrediction = rawPrediction.includes("phish") ? "Phishing" : "Safe";
 
-        console.log(data);  // 🔍 DEBUG
+        result.className = finalPrediction === "Safe"
+          ? "status-badge status-safe"
+          : "status-badge status-danger";
+        result.textContent = finalPrediction;
 
-        document.getElementById("result").innerHTML = data.prediction;
+        historyData.unshift({
+          url: url,
+          status: finalPrediction,
+          time: "Checked now"
+        });
 
-    } catch (error) {
-        console.error(error);
-        document.getElementById("result").innerHTML = "Error connecting to server";
+        if (historyData.length > 6) historyData.pop();
+
+        renderHistory();
+        updateStats(finalPrediction);
+
+      } catch (error) {
+        result.className = "status-badge status-danger";
+        result.textContent = "Error connecting to server";
+      } finally {
+        loadingBox.style.display = "none";
+      }
     }
-}
-</script>
 
+    function showAuthForm(type) {
+      const loginForm = document.getElementById("loginForm");
+      const registerForm = document.getElementById("registerForm");
+      const loginTab = document.getElementById("loginTab");
+      const registerTab = document.getElementById("registerTab");
+
+      if (type === "login") {
+        loginForm.classList.add("active");
+        registerForm.classList.remove("active");
+        loginTab.classList.add("active");
+        registerTab.classList.remove("active");
+      } else {
+        registerForm.classList.add("active");
+        loginForm.classList.remove("active");
+        registerTab.classList.add("active");
+        loginTab.classList.remove("active");
+      }
+    }
+
+    function validatePasswords() {
+      const password = document.getElementById("registerPassword").value;
+      const confirmPassword = document.getElementById("confirmPassword").value;
+      const passwordMessage = document.getElementById("passwordMessage");
+
+      if (!confirmPassword) {
+        passwordMessage.textContent = "";
+        passwordMessage.className = "input-message";
+        return true;
+      }
+
+      if (password === confirmPassword) {
+        passwordMessage.textContent = "Passwords match";
+        passwordMessage.className = "input-message success";
+        return true;
+      } else {
+        passwordMessage.textContent = "Passwords do not match";
+        passwordMessage.className = "input-message error";
+        return false;
+      }
+    }
+
+    function registerUser() {
+      const password = document.getElementById("registerPassword").value.trim();
+      const confirmPassword = document.getElementById("confirmPassword").value.trim();
+      const passwordMessage = document.getElementById("passwordMessage");
+
+      if (!password || !confirmPassword) {
+        passwordMessage.textContent = "Please fill both password fields";
+        passwordMessage.className = "input-message error";
+        return;
+      }
+
+      if (!validatePasswords()) {
+        return;
+      }
+
+      alert("Registration form is ready. Connect this to your backend API.");
+    }
+
+    const chart = new Chart(document.getElementById("statsChart"), {
+      type: "doughnut",
+      data: {
+        labels: ["Safe URLs", "Phishing URLs"],
+        datasets: [{
+          data: [stats.safe, stats.phishing],
+          backgroundColor: ["#22c55e", "#f43f5e"],
+          borderWidth: 0,
+          hoverOffset: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: "bottom",
+            labels: {
+              color: getComputedStyle(document.documentElement).getPropertyValue("--text")
+            }
+          }
+        },
+        cutout: "68%"
+      }
+    });
+
+    let currentTheme = "dark";
+    themeToggle.addEventListener("click", () => {
+      currentTheme = currentTheme === "dark" ? "light" : "dark";
+      document.documentElement.setAttribute("data-theme", currentTheme);
+      themeToggle.textContent = currentTheme === "dark" ? "🌙" : "☀️";
+    });
+
+    document.getElementById("registerPassword").addEventListener("input", validatePasswords);
+    document.getElementById("confirmPassword").addEventListener("input", validatePasswords);
+
+    renderHistory();
+  </script>
 </body>
 </html>
