@@ -1,8 +1,10 @@
 from flask import Flask, request, jsonify
 import joblib
 from src.feature_extraction import extract_features
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)   # ✅ CORRECT PLACE (top, after app creation)
 
 # Load model
 model = joblib.load("phishing_model.pkl")
@@ -24,6 +26,5 @@ def predict():
 
     return jsonify({"prediction": result})
 
-# 🔥 THIS LINE WAS MISSING
 if __name__ == "__main__":
     app.run(debug=True)
