@@ -18,6 +18,7 @@
       --bg: #f6f7fb;
       --surface: #ffffff;
       --surface-2: #f0f4f8;
+      --surface-3: #eaf0f7;
       --text: #17212b;
       --muted: #6b7280;
       --border: #d7dce3;
@@ -28,6 +29,8 @@
       --danger: #dc2626;
       --danger-bg: rgba(220, 38, 38, 0.12);
       --warning: #f59e0b;
+      --info: #2563eb;
+      --info-bg: rgba(37, 99, 235, 0.10);
       --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
       --radius: 18px;
     }
@@ -36,6 +39,7 @@
       --bg: #0b1220;
       --surface: #111827;
       --surface-2: #1b2435;
+      --surface-3: #202c41;
       --text: #f8fafc;
       --muted: #94a3b8;
       --border: #263246;
@@ -46,6 +50,8 @@
       --danger: #f43f5e;
       --danger-bg: rgba(244, 63, 94, 0.16);
       --warning: #fbbf24;
+      --info: #60a5fa;
+      --info-bg: rgba(96, 165, 250, 0.12);
       --shadow: 0 16px 44px rgba(0, 0, 0, 0.35);
     }
 
@@ -73,6 +79,7 @@
     .container {
       width: min(1180px, 92%);
       margin: auto;
+      padding-bottom: 36px;
     }
 
     .navbar {
@@ -136,6 +143,7 @@
       font-weight: 700;
       transition: 0.25s ease;
       min-height: 44px;
+      font-family: inherit;
     }
 
     .btn-primary {
@@ -160,6 +168,12 @@
       transform: translateY(-1px);
     }
 
+    .btn-small {
+      padding: 10px 14px;
+      min-height: 42px;
+      font-size: 0.92rem;
+    }
+
     .hero {
       padding: 56px 0 24px;
       display: grid;
@@ -174,6 +188,10 @@
       margin-bottom: 16px;
       letter-spacing: -0.03em;
       max-width: 11ch;
+    }
+
+    .hero p {
+      max-width: 60ch;
     }
 
     .hero-tags {
@@ -193,14 +211,19 @@
     }
 
     .hero-card,
-    .card {
+    .card,
+    .login-box,
+    .about-box {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 24px;
       box-shadow: var(--shadow);
     }
 
-    .hero-card {
+    .hero-card,
+    .card,
+    .login-box,
+    .about-box {
       padding: 22px;
     }
 
@@ -254,14 +277,15 @@
       font-size: 1rem;
     }
 
-    .scan-form input:focus {
+    .scan-form input:focus,
+    .field input:focus {
       border-color: var(--primary);
     }
 
     .result-row {
       margin-top: 16px;
       display: flex;
-      justify-content: space-between;
+      justify-content: flex-start;
       align-items: center;
       gap: 12px;
       flex-wrap: wrap;
@@ -327,8 +351,12 @@
       margin-top: 26px;
     }
 
-    .card {
-      padding: 22px;
+    .bottom-grid {
+      display: grid;
+      grid-template-columns: 0.95fr 1.05fr;
+      gap: 24px;
+      margin-top: 24px;
+      align-items: start;
     }
 
     .card-head {
@@ -350,16 +378,21 @@
       font-size: 0.96rem;
     }
 
-    .history-list {
+    .history-list,
+    .manual-list {
       display: grid;
       gap: 12px;
     }
 
-    .history-item {
+    .history-item,
+    .manual-step {
       padding: 14px 16px;
       border-radius: 18px;
       background: var(--surface-2);
       border: 1px solid var(--border);
+    }
+
+    .history-item {
       display: flex;
       justify-content: space-between;
       gap: 12px;
@@ -372,6 +405,29 @@
       word-break: break-all;
       margin-bottom: 4px;
       font-size: 0.98rem;
+    }
+
+    .manual-step {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+
+    .step-number {
+      min-width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: var(--info-bg);
+      color: var(--info);
+      font-weight: 900;
+      border: 1px solid var(--border);
+    }
+
+    .manual-step h3 {
+      font-size: 1rem;
+      margin-bottom: 2px;
     }
 
     .stats-grid {
@@ -402,23 +458,6 @@
       font-weight: 900;
     }
 
-    .bottom-grid {
-      display: grid;
-      grid-template-columns: 0.9fr 1.1fr;
-      gap: 24px;
-      margin-top: 24px;
-      margin-bottom: 40px;
-      align-items: start;
-    }
-
-    .login-box {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 24px;
-      box-shadow: var(--shadow);
-      padding: 22px;
-    }
-
     .auth-toggle {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -440,6 +479,7 @@
       font-weight: 700;
       cursor: pointer;
       transition: 0.25s ease;
+      font-family: inherit;
     }
 
     .toggle-btn.active {
@@ -488,16 +528,21 @@
       color: var(--text);
       padding: 0 14px;
       outline: none;
+      font-family: inherit;
     }
 
-    .field input:focus {
-      border-color: var(--primary);
-    }
-
-    .two-col {
+    .two-col,
+    .captcha-row {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 12px;
+    }
+
+    .otp-stack {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: end;
     }
 
     .input-message {
@@ -515,21 +560,32 @@
       color: var(--danger);
     }
 
-    .feature-list {
-      display: grid;
-      gap: 12px;
+    .input-message.info {
+      color: var(--info);
     }
 
-    .feature-item {
-      background: var(--surface-2);
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      padding: 14px 16px;
+    .captcha-box {
+      background: var(--surface-3);
+      border: 1px dashed var(--border);
+      border-radius: 16px;
+      min-height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      font-weight: 900;
+      letter-spacing: 0.18em;
+      user-select: none;
     }
 
-    .feature-item h3 {
+    .about-section {
+      margin-top: 24px;
+    }
+
+    .about-box p {
+      color: var(--muted);
       font-size: 1rem;
-      margin-bottom: 4px;
+      line-height: 1.8;
     }
 
     @media (max-width: 980px) {
@@ -542,11 +598,10 @@
 
     @media (max-width: 680px) {
       .scan-form,
-      .two-col {
-        grid-template-columns: 1fr;
-      }
-
-      .stats-grid {
+      .two-col,
+      .stats-grid,
+      .captcha-row,
+      .otp-stack {
         grid-template-columns: 1fr;
       }
 
@@ -557,7 +612,6 @@
   </style>
 </head>
 <body>
-
   <div class="container">
     <nav class="navbar">
       <div class="brand">
@@ -578,8 +632,12 @@
     <section class="hero">
       <div>
         <h1>Check URLs. Detect threats. Track user activity.</h1>
+        <p class="muted">
+          A modern phishing detection interface with URL scanning, history tracking,
+          secure registration flow, and visual dashboard insights.
+        </p>
 
-        <div style="display:flex; gap:12px; flex-wrap:wrap;">
+        <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:16px;">
           <button class="btn btn-primary" onclick="document.getElementById('scanner').scrollIntoView({behavior:'smooth'})">Open Scanner</button>
           <button class="btn btn-outline" onclick="document.getElementById('dashboard').scrollIntoView({behavior:'smooth'})">View Dashboard</button>
         </div>
@@ -587,7 +645,7 @@
         <div class="hero-tags">
           <span class="pill">Green = Safe</span>
           <span class="pill">Red = Phishing</span>
-          <span class="pill">Login UI Ready</span>
+          <span class="pill">OTP Registration UI</span>
           <span class="pill">History Included</span>
         </div>
       </div>
@@ -608,7 +666,6 @@
 
           <div class="result-row">
             <div id="result" class="status-badge status-muted">Waiting for scan</div>
-            <div class="muted">Backend API: /predict</div>
           </div>
 
           <div class="spinner-box" id="loadingBox">
@@ -743,6 +800,25 @@
           </div>
 
           <div class="field">
+            <label>Get OTP</label>
+            <div class="otp-stack">
+              <input type="text" id="otpInput" placeholder="Enter OTP after receiving it" />
+              <button type="button" class="btn btn-outline btn-small" onclick="sendOTP()">Get OTP</button>
+            </div>
+            <div id="otpMessage" class="input-message">OTP can be sent to email or mobile after backend integration.</div>
+          </div>
+
+          <div class="field">
+            <label>Captcha Verification</label>
+            <div class="captcha-row">
+              <div class="captcha-box" id="captchaText">A7K9Q</div>
+              <button type="button" class="btn btn-outline btn-small" onclick="generateCaptcha()">Refresh Captcha</button>
+            </div>
+            <input type="text" id="captchaInput" placeholder="Enter captcha shown above" style="margin-top:10px;" />
+            <div id="captchaMessage" class="input-message">Complete captcha before registration.</div>
+          </div>
+
+          <div class="field">
             <label for="dob">DOB</label>
             <input type="date" id="dob" />
           </div>
@@ -754,7 +830,7 @@
 
           <div class="field">
             <label for="confirmPassword">Confirm Password</label>
-            <input type="password" id="confirmPassword" placeholder="Confirm password" oninput="validatePasswords()" />
+            <input type="password" id="confirmPassword" placeholder="Confirm password" />
             <div id="passwordMessage" class="input-message"></div>
           </div>
 
@@ -767,31 +843,75 @@
       <div class="card">
         <div class="card-head">
           <div>
-            <h2>Product Features Included</h2>
+            <h2>How to Use PhishGuard</h2>
+            <p class="muted">A quick step-by-step guide for first-time users.</p>
           </div>
+          <div class="status-badge status-muted">Guide</div>
         </div>
 
-        <div class="feature-list">
-          <div class="feature-item">
-            <h3>🌐 Deployment-ready frontend</h3>
-            <p class="muted">Use this UI with a backend hosted on Render or Railway.</p>
+        <div class="manual-list">
+          <div class="manual-step">
+            <div class="step-number">1</div>
+            <div>
+              <h3>Enter the URL</h3>
+              <p class="muted">Paste the website link you want to test in the scanner box.</p>
+            </div>
           </div>
 
-          <div class="feature-item">
-            <h3>🎨 Improved modern UI</h3>
-            <p class="muted">Clean colors, responsive layout, status pills, and card-based design.</p>
+          <div class="manual-step">
+            <div class="step-number">2</div>
+            <div>
+              <h3>Click Check URL</h3>
+              <p class="muted">PhishGuard sends the URL to the backend detection model for analysis.</p>
+            </div>
           </div>
 
-          <div class="feature-item">
-            <h3>🔐 Login and Register toggle</h3>
-            <p class="muted">Users can switch between login and register forms in one section.</p>
+          <div class="manual-step">
+            <div class="step-number">3</div>
+            <div>
+              <h3>Read the result</h3>
+              <p class="muted">Green means safe, while red means phishing or suspicious.</p>
+            </div>
           </div>
 
-          <div class="feature-item">
-            <h3>📊 Dashboard with graph</h3>
-            <p class="muted">Shows safe and phishing counts plus a chart for quick analysis.</p>
+          <div class="manual-step">
+            <div class="step-number">4</div>
+            <div>
+              <h3>Check history</h3>
+              <p class="muted">Review recently scanned URLs in the history panel for quick tracking.</p>
+            </div>
+          </div>
+
+          <div class="manual-step">
+            <div class="step-number">5</div>
+            <div>
+              <h3>Register securely</h3>
+              <p class="muted">Use email, phone, OTP, captcha, and password confirmation to create an account.</p>
+            </div>
+          </div>
+
+          <div class="manual-step">
+            <div class="step-number">6</div>
+            <div>
+              <h3>View the dashboard</h3>
+              <p class="muted">Monitor safe scans, phishing detections, and threat rate in the chart section.</p>
+            </div>
           </div>
         </div>
+      </div>
+    </section>
+
+    <section class="about-section">
+      <div class="about-box">
+        <div class="card-head" style="margin-bottom: 12px;">
+          <div>
+            <h2>ABOUT</h2>
+          </div>
+          <div class="status-badge status-muted">Info</div>
+        </div>
+        <p>
+          A real-time AI/ML-based phishing detection and prevention system that analyzes URLs, emails, and web content to identify malicious patterns. The system uses machine learning models and threat intelligence to provide instant alerts, helping users stay protected from evolving cyber threats.
+        </p>
       </div>
     </section>
   </div>
@@ -813,6 +933,9 @@
     const loadingBox = document.getElementById("loadingBox");
     const historyList = document.getElementById("historyList");
     const themeToggle = document.getElementById("themeToggle");
+
+    let generatedOTP = "";
+    let generatedCaptcha = "";
 
     function renderHistory() {
       historyList.innerHTML = historyData.map(item => `
@@ -932,13 +1055,87 @@
       }
     }
 
+    function generateCaptcha() {
+      const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+      let captcha = "";
+      for (let i = 0; i < 5; i++) {
+        captcha += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      generatedCaptcha = captcha;
+      document.getElementById("captchaText").textContent = captcha;
+      document.getElementById("captchaMessage").textContent = "Enter the captcha exactly as shown.";
+      document.getElementById("captchaMessage").className = "input-message";
+    }
+
+    function sendOTP() {
+      const email = document.getElementById("registerEmail").value.trim();
+      const phone = document.getElementById("phoneNumber").value.trim();
+      const otpMessage = document.getElementById("otpMessage");
+
+      if (!email && !phone) {
+        otpMessage.textContent = "Enter email or phone number first.";
+        otpMessage.className = "input-message error";
+        return;
+      }
+
+      generatedOTP = String(Math.floor(100000 + Math.random() * 900000));
+      otpMessage.textContent = `Demo OTP generated: ${generatedOTP}`;
+      otpMessage.className = "input-message info";
+    }
+
     function registerUser() {
+      const firstName = document.getElementById("firstName").value.trim();
+      const lastName = document.getElementById("lastName").value.trim();
+      const email = document.getElementById("registerEmail").value.trim();
+      const phone = document.getElementById("phoneNumber").value.trim();
+      const otp = document.getElementById("otpInput").value.trim();
+      const dob = document.getElementById("dob").value.trim();
       const password = document.getElementById("registerPassword").value.trim();
       const confirmPassword = document.getElementById("confirmPassword").value.trim();
+      const captchaInput = document.getElementById("captchaInput").value.trim().toUpperCase();
+
       const passwordMessage = document.getElementById("passwordMessage");
+      const captchaMessage = document.getElementById("captchaMessage");
+      const otpMessage = document.getElementById("otpMessage");
+
+      if (!firstName || !lastName || !email || !phone || !dob || !password || !confirmPassword) {
+        alert("Please fill all required fields.");
+        return;
+      }
+
+      if (!generatedOTP) {
+        otpMessage.textContent = "Please click Get OTP first.";
+        otpMessage.className = "input-message error";
+        return;
+      }
+
+      if (otp !== generatedOTP) {
+        otpMessage.textContent = "Invalid OTP.";
+        otpMessage.className = "input-message error";
+        return;
+      } else {
+        otpMessage.textContent = "OTP verified successfully.";
+        otpMessage.className = "input-message success";
+      }
+
+      if (!captchaInput) {
+        captchaMessage.textContent = "Please enter captcha.";
+        captchaMessage.className = "input-message error";
+        return;
+      }
+
+      if (captchaInput !== generatedCaptcha) {
+        captchaMessage.textContent = "Captcha does not match.";
+        captchaMessage.className = "input-message error";
+        generateCaptcha();
+        return;
+      } else {
+        captchaMessage.textContent = "Captcha verified successfully.";
+        captchaMessage.className = "input-message success";
+      }
 
       if (!password || !confirmPassword) {
-        passwordMessage.textContent = "Please fill both password fields";
+        passwordMessage.textContent = "Please fill both password fields.";
         passwordMessage.className = "input-message error";
         return;
       }
@@ -947,7 +1144,7 @@
         return;
       }
 
-      alert("Registration form is ready. Connect this to your backend API.");
+      alert("Registration form is ready.");
     }
 
     const chart = new Chart(document.getElementById("statsChart"), {
@@ -980,11 +1177,16 @@
       currentTheme = currentTheme === "dark" ? "light" : "dark";
       document.documentElement.setAttribute("data-theme", currentTheme);
       themeToggle.textContent = currentTheme === "dark" ? "🌙" : "☀️";
+
+      chart.options.plugins.legend.labels.color =
+        getComputedStyle(document.documentElement).getPropertyValue("--text");
+      chart.update();
     });
 
     document.getElementById("registerPassword").addEventListener("input", validatePasswords);
     document.getElementById("confirmPassword").addEventListener("input", validatePasswords);
 
+    generateCaptcha();
     renderHistory();
   </script>
 </body>
