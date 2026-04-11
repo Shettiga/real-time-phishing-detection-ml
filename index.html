@@ -772,7 +772,7 @@
           </div>
 
           <div style="margin-top:16px;">
-            <button type="button" class="btn btn-primary" style="width:100%;">Login</button>
+           <button type="button" class="btn btn-primary" style="width:100%" onclick="loginUser()">Login</button>
           </div>
         </form>
 
@@ -965,55 +965,23 @@
     }
 
     async function checkURL() {
-      const url = document.getElementById("urlInput").value.trim();
+  const userId = localStorage.getItem("user_id");
 
-      if (!url) {
-        result.className = "status-badge status-danger";
-        result.textContent = "Enter a URL first";
-        return;
-      }
-
-      loadingBox.style.display = "flex";
-      result.className = "status-badge status-muted";
-      result.textContent = "Checking...";
-
-      try {
-        const response = await fetch("http://127.0.0.1:5000/predict", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ url: url })
-        });
-
-        const data = await response.json();
-        const rawPrediction = String(data.prediction || "").toLowerCase();
-        const finalPrediction = rawPrediction.includes("phish") ? "Phishing" : "Safe";
-
-        result.className = finalPrediction === "Safe"
-          ? "status-badge status-safe"
-          : "status-badge status-danger";
-        result.textContent = finalPrediction;
-
-        historyData.unshift({
-          url: url,
-          status: finalPrediction,
-          time: "Checked now"
-        });
-
-        if (historyData.length > 6) historyData.pop();
-
-        renderHistory();
-        updateStats(finalPrediction);
-
-      } catch (error) {
-        result.className = "status-badge status-danger";
-        result.textContent = "Error connecting to server";
-      } finally {
-        loadingBox.style.display = "none";
-      }
+if (userId) {
+  await fetch("http://127.0.0.1:5000/save_scan", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      user_id: userId,
+      url: url,
+      result: finalPrediction
+    })
+  });
+}
     }
-
+    
     function showAuthForm(type) {
       const loginForm = document.getElementById("loginForm");
       const registerForm = document.getElementById("registerForm");
@@ -1083,70 +1051,118 @@
       otpMessage.className = "input-message info";
     }
 
-    function registerUser() {
-      const firstName = document.getElementById("firstName").value.trim();
-      const lastName = document.getElementById("lastName").value.trim();
-      const email = document.getElementById("registerEmail").value.trim();
-      const phone = document.getElementById("phoneNumber").value.trim();
-      const otp = document.getElementById("otpInput").value.trim();
-      const dob = document.getElementById("dob").value.trim();
-      const password = document.getElementById("registerPassword").value.trim();
-      const confirmPassword = document.getElementById("confirmPassword").value.trim();
-      const captchaInput = document.getElementById("captchaInput").value.trim().toUpperCase();
+    async function registerUser() {
+  const firstName = document.getElementById("firstName").value.trim();
+  const lastName = document.getElementById("lastName").value.trim();
+  const email = document.getElementById("registerEmail").value.trim();
+  const phone = document.getElementById("phoneNumber").value.trim();
+  const otp = document.getElementById("otpInput").value.trim();
+  const dob = document.getElementById("dob").value.trim();
+  const password = document.getElementById("registerPassword").value.trim();
+  const confirmPassword = document.getElementById("confirmPassword").value.trim();
+  const captchaInput = document.getElementById("captchaInput").value.trim().toUpperCase();
 
-      const passwordMessage = document.getElementById("passwordMessage");
-      const captchaMessage = document.getElementById("captchaMessage");
-      const otpMessage = document.getElementById("otpMessage");
+  const passwordMessage = document.getElementById("passwordMessage");
+  const captchaMessage = document.getElementById("captchaMessage");
+  const otpMessage = document.getElementById("otpMessage");
 
-      if (!firstName || !lastName || !email || !phone || !dob || !password || !confirmPassword) {
-        alert("Please fill all required fields.");
-        return;
-      }
+  // ✅ Validation
+  if (!firstName || !lastName || !email || !phone || !dob || !password || !confirmPassword) {
+    alert("Please fill all required fields.");
+    return;
+  }
 
-      if (!generatedOTP) {
-        otpMessage.textContent = "Please click Get OTP first.";
-        otpMessage.className = "input-message error";
-        return;
-      }
+  if (!generatedOTP) {
+    otpMessage.textContent = "Please click Get OTP first.";
+    otpMessage.className = "input-message error";
+    return;
+  }
 
-      if (otp !== generatedOTP) {
-        otpMessage.textContent = "Invalid OTP.";
-        otpMessage.className = "input-message error";
-        return;
-      } else {
-        otpMessage.textContent = "OTP verified successfully.";
-        otpMessage.className = "input-message success";
-      }
+  if (otp !== generatedOTP) {
+    otpMessage.textContent = "Invalid OTP.";
+    otpMessage.className = "input-message error";
+    return;
+  }
 
-      if (!captchaInput) {
-        captchaMessage.textContent = "Please enter captcha.";
-        captchaMessage.className = "input-message error";
-        return;
-      }
+  if (captchaInput !== generatedCaptcha) {
+    captchaMessage.textContent = "Captcha does not match.";
+    captchaMessage.className = "input-message error";
+    generateCaptcha();
+    return;
+  }
 
-      if (captchaInput !== generatedCaptcha) {
-        captchaMessage.textContent = "Captcha does not match.";
-        captchaMessage.className = "input-message error";
-        generateCaptcha();
-        return;
-      } else {
-        captchaMessage.textContent = "Captcha verified successfully.";
-        captchaMessage.className = "input-message success";
-      }
+  if (!validatePasswords()) return;
 
-      if (!password || !confirmPassword) {
-        passwordMessage.textContent = "Please fill both password fields.";
-        passwordMessage.className = "input-message error";
-        return;
-      }
+  // ✅ SEND DATA TO BACKEND
+  try {
+    const response = await fetch("http://127.0.0.1:5000/register", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        first_name: firstName,
+        last_name: lastName,
+        email: email,
+        phone: phone,
+        dob: dob,
+        password: password
+      })
+    });
 
-      if (!validatePasswords()) {
-        return;
-      }
+    const data = await response.json();
 
-      alert("Registration form is ready.");
+    if (response.ok) {
+      alert("✅ Registration Successful!");
+      
+      // Reset form
+      document.getElementById("registerForm").reset();
+      generateCaptcha();
+    } else {
+      alert("❌ " + data.error);
     }
 
+  } catch (error) {
+    alert("⚠️ Server error. Try again later.");
+    console.error(error);
+  }
+}
+
+async function loginUser() {
+  const email = document.getElementById("loginEmail").value.trim();
+  const password = document.getElementById("loginPassword").value.trim();
+
+  if (!email || !password) {
+    alert("Enter email and password");
+    return;
+  }
+
+  try {
+    const response = await fetch("http://127.0.0.1:5000/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ email, password })
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      alert("✅ Login successful!");
+
+      // ✅ Save user in browser
+      localStorage.setItem("user_id", data.user_id);
+      localStorage.setItem("user_name", data.name);
+
+    } else {
+      alert("❌ " + data.error);
+    }
+
+  } catch (error) {
+    alert("Server error");
+  }
+}
     const chart = new Chart(document.getElementById("statsChart"), {
       type: "doughnut",
       data: {
