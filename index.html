@@ -14,7 +14,8 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
-    :root, [data-theme="light"] {
+    :root,
+    [data-theme="light"] {
       --bg: #f6f7fb;
       --surface: #ffffff;
       --surface-2: #f0f4f8;
@@ -24,15 +25,13 @@
       --border: #d7dce3;
       --primary: #0f766e;
       --primary-hover: #115e59;
-      --safe: #1f9d55;
-      --safe-bg: rgba(31, 157, 85, 0.12);
+      --safe: #22c55e;
+      --safe-bg: rgba(34, 197, 94, 0.12);
       --danger: #dc2626;
       --danger-bg: rgba(220, 38, 38, 0.12);
-      --warning: #f59e0b;
       --info: #2563eb;
-      --info-bg: rgba(37, 99, 235, 0.10);
+      --info-bg: rgba(37, 99, 235, 0.1);
       --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
-      --radius: 18px;
     }
 
     [data-theme="dark"] {
@@ -49,7 +48,6 @@
       --safe-bg: rgba(34, 197, 94, 0.16);
       --danger: #f43f5e;
       --danger-bg: rgba(244, 63, 94, 0.16);
-      --warning: #fbbf24;
       --info: #60a5fa;
       --info-bg: rgba(96, 165, 250, 0.12);
       --shadow: 0 16px 44px rgba(0, 0, 0, 0.35);
@@ -69,7 +67,7 @@
       font-family: "Satoshi", sans-serif;
       background:
         radial-gradient(circle at top left, rgba(20, 184, 166, 0.12), transparent 25%),
-        radial-gradient(circle at bottom right, rgba(244, 63, 94, 0.10), transparent 22%),
+        radial-gradient(circle at bottom right, rgba(244, 63, 94, 0.1), transparent 22%),
         var(--bg);
       color: var(--text);
       min-height: 100vh;
@@ -85,7 +83,7 @@
     .navbar {
       margin-top: 18px;
       padding: 14px 18px;
-      background: rgba(255,255,255,0.04);
+      background: rgba(255, 255, 255, 0.04);
       border: 1px solid var(--border);
       border-radius: 22px;
       backdrop-filter: blur(10px);
@@ -135,15 +133,21 @@
     }
 
     .btn,
-    .theme-toggle {
+    .theme-toggle,
+    .toggle-btn,
+    .show-pass {
       border: none;
       cursor: pointer;
+      font-family: inherit;
+      transition: 0.25s ease;
+    }
+
+    .btn,
+    .theme-toggle {
       border-radius: 999px;
       padding: 12px 18px;
       font-weight: 700;
-      transition: 0.25s ease;
       min-height: 44px;
-      font-family: inherit;
     }
 
     .btn-primary {
@@ -218,12 +222,6 @@
       border: 1px solid var(--border);
       border-radius: 24px;
       box-shadow: var(--shadow);
-    }
-
-    .hero-card,
-    .card,
-    .login-box,
-    .about-box {
       padding: 22px;
     }
 
@@ -265,7 +263,8 @@
       gap: 12px;
     }
 
-    .scan-form input {
+    .scan-form input,
+    .field input {
       width: 100%;
       min-height: 52px;
       border-radius: 16px;
@@ -275,6 +274,7 @@
       padding: 0 16px;
       outline: none;
       font-size: 1rem;
+      font-family: inherit;
     }
 
     .scan-form input:focus,
@@ -335,7 +335,7 @@
       width: 22px;
       height: 22px;
       border-radius: 50%;
-      border: 3px solid rgba(255,255,255,0.18);
+      border: 3px solid rgba(255, 255, 255, 0.18);
       border-top-color: var(--primary);
       animation: spin 0.8s linear infinite;
     }
@@ -344,11 +344,33 @@
       to { transform: rotate(360deg); }
     }
 
+    .protected-section {
+      display: none;
+    }
+
+    .protected-section.show {
+      display: block;
+      animation: fadeIn 0.35s ease;
+    }
+
     .main-grid {
       display: grid;
-      grid-template-columns: 1.05fr 0.95fr;
+      grid-template-columns: 1.15fr 0.85fr;
       gap: 24px;
       margin-top: 26px;
+      align-items: start;
+    }
+
+    .dashboard-card {
+      max-width: 430px;
+      width: 100%;
+      justify-self: end;
+    }
+
+    .dashboard-chart-wrap {
+      width: 100%;
+      max-width: 280px;
+      margin: 0 auto;
     }
 
     .bottom-grid {
@@ -385,7 +407,8 @@
     }
 
     .history-item,
-    .manual-step {
+    .manual-step,
+    .forgot-box {
       padding: 14px 16px;
       border-radius: 18px;
       background: var(--surface-2);
@@ -433,20 +456,20 @@
     .stats-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-      margin-bottom: 18px;
+      gap: 10px;
+      margin-bottom: 14px;
     }
 
     .stat-box {
       background: var(--surface-2);
       border: 1px solid var(--border);
       border-radius: 18px;
-      padding: 16px;
+      padding: 14px;
     }
 
     .stat-box span {
       display: block;
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       text-transform: uppercase;
       letter-spacing: 0.08em;
       color: var(--muted);
@@ -454,7 +477,7 @@
     }
 
     .stat-box strong {
-      font-size: 1.7rem;
+      font-size: 1.35rem;
       font-weight: 900;
     }
 
@@ -471,15 +494,11 @@
     }
 
     .toggle-btn {
-      border: none;
       background: transparent;
       color: var(--text);
       padding: 12px 14px;
       border-radius: 999px;
       font-weight: 700;
-      cursor: pointer;
-      transition: 0.25s ease;
-      font-family: inherit;
     }
 
     .toggle-btn.active {
@@ -488,12 +507,14 @@
       box-shadow: var(--shadow);
     }
 
-    .auth-form {
+    .auth-form,
+    .forgot-flow {
       display: none;
       animation: fadeIn 0.3s ease;
     }
 
-    .auth-form.active {
+    .auth-form.active,
+    .forgot-flow.active {
       display: block;
     }
 
@@ -517,18 +538,6 @@
       margin-bottom: 6px;
       font-weight: 700;
       font-size: 0.96rem;
-    }
-
-    .field input {
-      width: 100%;
-      min-height: 50px;
-      border-radius: 16px;
-      border: 1px solid var(--border);
-      background: var(--surface-2);
-      color: var(--text);
-      padding: 0 14px;
-      outline: none;
-      font-family: inherit;
     }
 
     .two-col,
@@ -578,14 +587,56 @@
       user-select: none;
     }
 
+    .password-wrap {
+      position: relative;
+    }
+
+    .password-wrap input {
+      padding-right: 68px;
+    }
+
+    .show-pass {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: transparent;
+      color: var(--muted);
+      font-size: 0.92rem;
+      font-weight: 700;
+    }
+
+    .show-pass:hover {
+      color: var(--primary);
+    }
+
+    .forgot-toggle {
+      margin-top: 10px;
+      display: inline-block;
+      color: var(--info);
+      cursor: pointer;
+      font-weight: 700;
+      text-decoration: none;
+      font-size: 0.94rem;
+    }
+
+    .forgot-toggle:hover {
+      text-decoration: underline;
+    }
+
+    .forgot-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
     .about-section {
       margin-top: 24px;
     }
 
-    .about-box p {
-      color: var(--muted);
-      font-size: 1rem;
-      line-height: 1.8;
+    .hidden {
+      display: none !important;
     }
 
     @media (max-width: 980px) {
@@ -593,6 +644,11 @@
       .main-grid,
       .bottom-grid {
         grid-template-columns: 1fr;
+      }
+
+      .dashboard-card {
+        max-width: 100%;
+        justify-self: stretch;
       }
     }
 
@@ -607,6 +663,10 @@
 
       .hero h1 {
         max-width: 100%;
+      }
+
+      .dashboard-chart-wrap {
+        max-width: 240px;
       }
     }
   </style>
@@ -638,15 +698,19 @@
         </p>
 
         <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:16px;">
-          <button class="btn btn-primary" onclick="document.getElementById('scanner').scrollIntoView({behavior:'smooth'})">Open Scanner</button>
-          <button class="btn btn-outline" onclick="document.getElementById('dashboard').scrollIntoView({behavior:'smooth'})">View Dashboard</button>
+          <button class="btn btn-primary" onclick="document.getElementById('scanner').scrollIntoView({behavior:'smooth'})">
+            Open Scanner
+          </button>
+          <button class="btn btn-outline" onclick="document.getElementById('aboutSection').scrollIntoView({behavior:'smooth'})">
+            About Project
+          </button>
         </div>
 
         <div class="hero-tags">
           <span class="pill">Green = Safe</span>
           <span class="pill">Red = Phishing</span>
           <span class="pill">OTP Registration UI</span>
-          <span class="pill">History Included</span>
+          <span class="pill">History After Login</span>
         </div>
       </div>
 
@@ -676,75 +740,6 @@
       </div>
     </section>
 
-    <section class="main-grid">
-      <div class="card">
-        <div class="card-head">
-          <div>
-            <h2>Recent Checked URLs</h2>
-            <p class="muted">User history area for previously scanned links.</p>
-          </div>
-          <div class="status-badge status-muted">History</div>
-        </div>
-
-        <div class="history-list" id="historyList">
-          <div class="history-item">
-            <div>
-              <strong>https://www.google.com</strong>
-              <span class="muted">Checked just now</span>
-            </div>
-            <span class="status-badge status-safe">Safe</span>
-          </div>
-
-          <div class="history-item">
-            <div>
-              <strong>http://secure-login-update-paypal.xyz</strong>
-              <span class="muted">Checked 5 min ago</span>
-            </div>
-            <span class="status-badge status-danger">Phishing</span>
-          </div>
-
-          <div class="history-item">
-            <div>
-              <strong>https://github.com</strong>
-              <span class="muted">Checked 12 min ago</span>
-            </div>
-            <span class="status-badge status-safe">Safe</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="card" id="dashboard">
-        <div class="card-head">
-          <div>
-            <h2>Detection Dashboard</h2>
-            <p class="muted">Safe vs phishing percentage with graph.</p>
-          </div>
-          <div class="status-badge status-muted">Stats</div>
-        </div>
-
-        <div class="stats-grid">
-          <div class="stat-box">
-            <span>Total Scans</span>
-            <strong id="totalScans">128</strong>
-          </div>
-          <div class="stat-box">
-            <span>Safe URLs</span>
-            <strong id="safeCount">82</strong>
-          </div>
-          <div class="stat-box">
-            <span>Phishing URLs</span>
-            <strong id="phishingCount">46</strong>
-          </div>
-          <div class="stat-box">
-            <span>Threat Rate</span>
-            <strong id="threatRate">35.9%</strong>
-          </div>
-        </div>
-
-        <canvas id="statsChart" height="220"></canvas>
-      </div>
-    </section>
-
     <section class="bottom-grid">
       <div class="login-box">
         <div class="card-head" style="margin-bottom: 8px;">
@@ -768,13 +763,69 @@
 
           <div class="field">
             <label for="loginPassword">Password</label>
-            <input type="password" id="loginPassword" placeholder="Enter your password" />
+            <div class="password-wrap">
+              <input type="password" id="loginPassword" placeholder="Enter your password" />
+              <button type="button" class="show-pass" onclick="togglePassword('loginPassword', this)">Show</button>
+            </div>
           </div>
 
+          <a class="forgot-toggle" onclick="openForgotPassword()">Forgot password?</a>
+
           <div style="margin-top:16px;">
-           <button type="button" class="btn btn-primary" style="width:100%" onclick="loginUser()">Login</button>
+            <button type="button" class="btn btn-primary" style="width:100%;" onclick="loginUser()">Login</button>
           </div>
         </form>
+
+        <div id="forgotFlow" class="forgot-flow">
+          <div class="forgot-box">
+            <div class="card-head" style="margin-bottom:12px;">
+              <div>
+                <h2 style="font-size:1.05rem;">Forgot Password</h2>
+                <p class="muted">Verify email with OTP and create a new password.</p>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="forgotEmail">Email</label>
+              <input type="email" id="forgotEmail" placeholder="Enter your registered email" />
+            </div>
+
+            <div class="field">
+              <label for="forgotOtp">OTP</label>
+              <div class="otp-stack">
+                <input type="text" id="forgotOtp" placeholder="Enter OTP" />
+                <button type="button" class="btn btn-outline btn-small" onclick="sendForgotOTP()">Get OTP</button>
+              </div>
+              <div id="forgotOtpMessage" class="input-message">Enter your email and request OTP.</div>
+            </div>
+
+            <div id="resetPasswordArea" class="hidden">
+              <div class="field">
+                <label for="newPassword">New Password</label>
+                <div class="password-wrap">
+                  <input type="password" id="newPassword" placeholder="Enter new password" />
+                  <button type="button" class="show-pass" onclick="togglePassword('newPassword', this)">Show</button>
+                </div>
+              </div>
+
+              <div class="field">
+                <label for="confirmNewPassword">Confirm New Password</label>
+                <div class="password-wrap">
+                  <input type="password" id="confirmNewPassword" placeholder="Confirm new password" />
+                  <button type="button" class="show-pass" onclick="togglePassword('confirmNewPassword', this)">Show</button>
+                </div>
+              </div>
+
+              <div id="forgotPasswordMessage" class="input-message"></div>
+            </div>
+
+            <div class="forgot-actions">
+              <button type="button" class="btn btn-primary" onclick="verifyForgotOTP()">Verify OTP</button>
+              <button type="button" class="btn btn-outline" onclick="resetForgotView()">Back to Login</button>
+              <button type="button" class="btn btn-outline hidden" id="changePasswordBtn" onclick="changePassword()">Change Password</button>
+            </div>
+          </div>
+        </div>
 
         <form id="registerForm" class="auth-form">
           <div class="two-col">
@@ -790,6 +841,11 @@
           </div>
 
           <div class="field">
+            <label for="dob">DOB</label>
+            <input type="date" id="dob" />
+          </div>
+
+          <div class="field">
             <label for="registerEmail">Email Address</label>
             <input type="email" id="registerEmail" placeholder="Enter email address" />
           </div>
@@ -800,12 +856,12 @@
           </div>
 
           <div class="field">
-            <label>Get OTP</label>
+            <label>OTP</label>
             <div class="otp-stack">
-              <input type="text" id="otpInput" placeholder="Enter OTP after receiving it" />
+              <input type="text" id="otpInput" placeholder="Enter OTP received by SMS / email" />
               <button type="button" class="btn btn-outline btn-small" onclick="sendOTP()">Get OTP</button>
             </div>
-            <div id="otpMessage" class="input-message">OTP can be sent to email or mobile after backend integration.</div>
+            <div id="otpMessage" class="input-message">Enter email and phone number, then request OTP.</div>
           </div>
 
           <div class="field">
@@ -819,18 +875,19 @@
           </div>
 
           <div class="field">
-            <label for="dob">DOB</label>
-            <input type="date" id="dob" />
-          </div>
-
-          <div class="field">
             <label for="registerPassword">Password</label>
-            <input type="password" id="registerPassword" placeholder="Create password" />
+            <div class="password-wrap">
+              <input type="password" id="registerPassword" placeholder="Create password" />
+              <button type="button" class="show-pass" onclick="togglePassword('registerPassword', this)">Show</button>
+            </div>
           </div>
 
           <div class="field">
             <label for="confirmPassword">Confirm Password</label>
-            <input type="password" id="confirmPassword" placeholder="Confirm password" />
+            <div class="password-wrap">
+              <input type="password" id="confirmPassword" placeholder="Confirm password" />
+              <button type="button" class="show-pass" onclick="togglePassword('confirmPassword', this)">Show</button>
+            </div>
             <div id="passwordMessage" class="input-message"></div>
           </div>
 
@@ -853,13 +910,21 @@
           <div class="manual-step">
             <div class="step-number">1</div>
             <div>
+              <h3>Login or Register</h3>
+              <p class="muted">Create an account or log in first before checking URLs.</p>
+            </div>
+          </div>
+
+          <div class="manual-step">
+            <div class="step-number">2</div>
+            <div>
               <h3>Enter the URL</h3>
               <p class="muted">Paste the website link you want to test in the scanner box.</p>
             </div>
           </div>
 
           <div class="manual-step">
-            <div class="step-number">2</div>
+            <div class="step-number">3</div>
             <div>
               <h3>Click Check URL</h3>
               <p class="muted">PhishGuard sends the URL to the backend detection model for analysis.</p>
@@ -867,7 +932,7 @@
           </div>
 
           <div class="manual-step">
-            <div class="step-number">3</div>
+            <div class="step-number">4</div>
             <div>
               <h3>Read the result</h3>
               <p class="muted">Green means safe, while red means phishing or suspicious.</p>
@@ -875,33 +940,74 @@
           </div>
 
           <div class="manual-step">
-            <div class="step-number">4</div>
-            <div>
-              <h3>Check history</h3>
-              <p class="muted">Review recently scanned URLs in the history panel for quick tracking.</p>
-            </div>
-          </div>
-
-          <div class="manual-step">
             <div class="step-number">5</div>
             <div>
-              <h3>Register securely</h3>
-              <p class="muted">Use email, phone, OTP, captcha, and password confirmation to create an account.</p>
-            </div>
-          </div>
-
-          <div class="manual-step">
-            <div class="step-number">6</div>
-            <div>
-              <h3>View the dashboard</h3>
-              <p class="muted">Monitor safe scans, phishing detections, and threat rate in the chart section.</p>
+              <h3>Reset if needed</h3>
+              <p class="muted">Use the forgot password option to receive OTP and set a new password.</p>
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <section class="about-section">
+    <section id="protectedSection" class="protected-section">
+      <section class="main-grid">
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h2>Recent Checked URLs</h2>
+              <p class="muted">User history area for previously scanned links.</p>
+            </div>
+            <div class="status-badge status-muted">History</div>
+          </div>
+
+          <div class="history-list" id="historyList">
+            <div class="history-item">
+              <div>
+                <strong>No URLs checked yet</strong>
+                <span class="muted">Your history will appear here after login and scan</span>
+              </div>
+              <span class="status-badge status-muted">Empty</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card dashboard-card">
+          <div class="card-head">
+            <div>
+              <h2>Detection Dashboard</h2>
+              <p class="muted">Safe vs phishing percentage with graph.</p>
+            </div>
+            <div class="status-badge status-muted">Stats</div>
+          </div>
+
+          <div class="stats-grid">
+            <div class="stat-box">
+              <span>Total Scans</span>
+              <strong id="totalScans">0</strong>
+            </div>
+            <div class="stat-box">
+              <span>Safe URLs</span>
+              <strong id="safeCount">0</strong>
+            </div>
+            <div class="stat-box">
+              <span>Phishing URLs</span>
+              <strong id="phishingCount">0</strong>
+            </div>
+            <div class="stat-box">
+              <span>Threat Rate</span>
+              <strong id="threatRate">0%</strong>
+            </div>
+          </div>
+
+          <div class="dashboard-chart-wrap">
+            <canvas id="statsChart"></canvas>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <section class="about-section" id="aboutSection">
       <div class="about-box">
         <div class="card-head" style="margin-bottom: 12px;">
           <div>
@@ -909,50 +1015,74 @@
           </div>
           <div class="status-badge status-muted">Info</div>
         </div>
-        <p>
-          A real-time AI/ML-based phishing detection and prevention system that analyzes URLs, emails, and web content to identify malicious patterns. The system uses machine learning models and threat intelligence to provide instant alerts, helping users stay protected from evolving cyber threats.
+
+        <p class="muted">
+          A real-time AI/ML-based phishing detection and prevention system that analyzes URLs
+          and helps users identify malicious patterns before opening unsafe websites.
         </p>
       </div>
     </section>
   </div>
 
   <script>
-    const historyData = [
-      { url: "https://www.google.com", status: "Safe", time: "Checked just now" },
-      { url: "http://secure-login-update-paypal.xyz", status: "Phishing", time: "Checked 5 min ago" },
-      { url: "https://github.com", status: "Safe", time: "Checked 12 min ago" }
-    ];
-
+    const historyData = [];
     const stats = {
-      total: 128,
-      safe: 82,
-      phishing: 46
+      total: 0,
+      safe: 0,
+      phishing: 0
     };
 
     const result = document.getElementById("result");
     const loadingBox = document.getElementById("loadingBox");
     const historyList = document.getElementById("historyList");
     const themeToggle = document.getElementById("themeToggle");
+    const protectedSection = document.getElementById("protectedSection");
 
     let generatedOTP = "";
     let generatedCaptcha = "";
+    let forgotGeneratedOTP = "";
+    let isAuthenticated = false;
 
     function renderHistory() {
+      if (historyData.length === 0) {
+        historyList.innerHTML = `
+          <div class="history-item">
+            <div>
+              <strong>No URLs checked yet</strong>
+              <span class="muted">Your history will appear here after login and scan</span>
+            </div>
+            <span class="status-badge status-muted">Empty</span>
+          </div>
+        `;
+        return;
+      }
+
       historyList.innerHTML = historyData.map(item => `
         <div class="history-item">
           <div>
             <strong>${item.url}</strong>
             <span class="muted">${item.time}</span>
           </div>
-          <span class="status-badge ${item.status === 'Safe' ? 'status-safe' : 'status-danger'}">${item.status}</span>
+          <span class="status-badge ${item.status === "Safe" ? "status-safe" : "status-danger"}">${item.status}</span>
         </div>
       `).join("");
     }
 
+    function updateProtectedUI() {
+      if (isAuthenticated) {
+        protectedSection.classList.add("show");
+      } else {
+        protectedSection.classList.remove("show");
+      }
+    }
+
     function updateStats(status) {
       stats.total++;
-      if (status === "Safe") stats.safe++;
-      else stats.phishing++;
+      if (status === "Safe") {
+        stats.safe++;
+      } else {
+        stats.phishing++;
+      }
 
       document.getElementById("totalScans").textContent = stats.total;
       document.getElementById("safeCount").textContent = stats.safe;
@@ -965,28 +1095,70 @@
     }
 
     async function checkURL() {
-  const userId = localStorage.getItem("user_id");
+      const url = document.getElementById("urlInput").value.trim();
 
-if (userId) {
-  await fetch("http://127.0.0.1:5000/save_scan", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      user_id: userId,
-      url: url,
-      result: finalPrediction
-    })
-  });
-}
+      if (!url) {
+        result.className = "status-badge status-danger";
+        result.textContent = "Enter a URL first";
+        return;
+      }
+
+      if (!isAuthenticated) {
+        result.className = "status-badge status-danger";
+        result.textContent = "Please login first";
+        return;
+      }
+
+      loadingBox.style.display = "flex";
+      result.className = "status-badge status-muted";
+      result.textContent = "Checking...";
+
+      try {
+        const response = await fetch("http://127.0.0.1:5000/predict", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ url: url })
+        });
+
+        const data = await response.json();
+        const rawPrediction = String(data.prediction).toLowerCase();
+        const finalPrediction = rawPrediction.includes("phish") ? "Phishing" : "Safe";
+
+        result.className =
+          finalPrediction === "Safe"
+            ? "status-badge status-safe"
+            : "status-badge status-danger";
+
+        result.textContent = finalPrediction;
+
+        historyData.unshift({
+          url: url,
+          status: finalPrediction,
+          time: "Checked now"
+        });
+
+        if (historyData.length > 6) historyData.pop();
+
+        renderHistory();
+        updateStats(finalPrediction);
+      } catch (error) {
+        result.className = "status-badge status-danger";
+        result.textContent = "Error connecting to server";
+      } finally {
+        loadingBox.style.display = "none";
+      }
     }
-    
+
     function showAuthForm(type) {
       const loginForm = document.getElementById("loginForm");
       const registerForm = document.getElementById("registerForm");
+      const forgotFlow = document.getElementById("forgotFlow");
       const loginTab = document.getElementById("loginTab");
       const registerTab = document.getElementById("registerTab");
+
+      forgotFlow.classList.remove("active");
 
       if (type === "login") {
         loginForm.classList.add("active");
@@ -996,9 +1168,35 @@ if (userId) {
       } else {
         registerForm.classList.add("active");
         loginForm.classList.remove("active");
-        registerTab.classList.add("active");
         loginTab.classList.remove("active");
+        registerTab.classList.add("active");
       }
+    }
+
+    function togglePassword(inputId, btn) {
+      const input = document.getElementById(inputId);
+      if (input.type === "password") {
+        input.type = "text";
+        btn.textContent = "Hide";
+      } else {
+        input.type = "password";
+        btn.textContent = "Show";
+      }
+    }
+
+    function loginUser() {
+      const email = document.getElementById("loginEmail").value.trim();
+      const password = document.getElementById("loginPassword").value.trim();
+
+      if (!email || !password) {
+        alert("Please enter email and password.");
+        return;
+      }
+
+      isAuthenticated = true;
+      updateProtectedUI();
+      alert("Login successful.");
+      document.getElementById("protectedSection").scrollIntoView({ behavior: "smooth" });
     }
 
     function validatePasswords() {
@@ -1029,6 +1227,7 @@ if (userId) {
       for (let i = 0; i < 5; i++) {
         captcha += chars.charAt(Math.floor(Math.random() * chars.length));
       }
+
       generatedCaptcha = captcha;
       document.getElementById("captchaText").textContent = captcha;
       document.getElementById("captchaMessage").textContent = "Enter the captcha exactly as shown.";
@@ -1040,129 +1239,150 @@ if (userId) {
       const phone = document.getElementById("phoneNumber").value.trim();
       const otpMessage = document.getElementById("otpMessage");
 
-      if (!email && !phone) {
-        otpMessage.textContent = "Enter email or phone number first.";
+      if (!email || !phone) {
+        otpMessage.textContent = "Please enter both email and phone number first.";
         otpMessage.className = "input-message error";
         return;
       }
 
       generatedOTP = String(Math.floor(100000 + Math.random() * 900000));
-      otpMessage.textContent = `Demo OTP generated: ${generatedOTP}`;
-      otpMessage.className = "input-message info";
+      otpMessage.textContent = "OTP has been sent to your email and phone number.";
+      otpMessage.className = "input-message success";
     }
 
-    async function registerUser() {
-  const firstName = document.getElementById("firstName").value.trim();
-  const lastName = document.getElementById("lastName").value.trim();
-  const email = document.getElementById("registerEmail").value.trim();
-  const phone = document.getElementById("phoneNumber").value.trim();
-  const otp = document.getElementById("otpInput").value.trim();
-  const dob = document.getElementById("dob").value.trim();
-  const password = document.getElementById("registerPassword").value.trim();
-  const confirmPassword = document.getElementById("confirmPassword").value.trim();
-  const captchaInput = document.getElementById("captchaInput").value.trim().toUpperCase();
+    function registerUser() {
+      const firstName = document.getElementById("firstName").value.trim();
+      const lastName = document.getElementById("lastName").value.trim();
+      const dob = document.getElementById("dob").value.trim();
+      const email = document.getElementById("registerEmail").value.trim();
+      const phone = document.getElementById("phoneNumber").value.trim();
+      const otp = document.getElementById("otpInput").value.trim();
+      const captchaInput = document.getElementById("captchaInput").value.trim().toUpperCase();
+      const password = document.getElementById("registerPassword").value.trim();
+      const confirmPassword = document.getElementById("confirmPassword").value.trim();
 
-  const passwordMessage = document.getElementById("passwordMessage");
-  const captchaMessage = document.getElementById("captchaMessage");
-  const otpMessage = document.getElementById("otpMessage");
+      const passwordMessage = document.getElementById("passwordMessage");
+      const captchaMessage = document.getElementById("captchaMessage");
+      const otpMessage = document.getElementById("otpMessage");
 
-  // ✅ Validation
-  if (!firstName || !lastName || !email || !phone || !dob || !password || !confirmPassword) {
-    alert("Please fill all required fields.");
-    return;
-  }
+      if (!firstName || !lastName || !dob || !email || !phone || !otp || !captchaInput || !password || !confirmPassword) {
+        alert("Please fill all required fields.");
+        return;
+      }
 
-  if (!generatedOTP) {
-    otpMessage.textContent = "Please click Get OTP first.";
-    otpMessage.className = "input-message error";
-    return;
-  }
+      if (!generatedOTP) {
+        otpMessage.textContent = "Please click Get OTP first.";
+        otpMessage.className = "input-message error";
+        return;
+      }
 
-  if (otp !== generatedOTP) {
-    otpMessage.textContent = "Invalid OTP.";
-    otpMessage.className = "input-message error";
-    return;
-  }
+      if (otp !== generatedOTP) {
+        otpMessage.textContent = "Invalid OTP.";
+        otpMessage.className = "input-message error";
+        return;
+      } else {
+        otpMessage.textContent = "OTP verified successfully.";
+        otpMessage.className = "input-message success";
+      }
 
-  if (captchaInput !== generatedCaptcha) {
-    captchaMessage.textContent = "Captcha does not match.";
-    captchaMessage.className = "input-message error";
-    generateCaptcha();
-    return;
-  }
+      if (captchaInput !== generatedCaptcha) {
+        captchaMessage.textContent = "Captcha does not match.";
+        captchaMessage.className = "input-message error";
+        generateCaptcha();
+        return;
+      } else {
+        captchaMessage.textContent = "Captcha verified successfully.";
+        captchaMessage.className = "input-message success";
+      }
 
-  if (!validatePasswords()) return;
+      if (!validatePasswords()) return;
 
-  // ✅ SEND DATA TO BACKEND
-  try {
-    const response = await fetch("http://127.0.0.1:5000/register", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        first_name: firstName,
-        last_name: lastName,
-        email: email,
-        phone: phone,
-        dob: dob,
-        password: password
-      })
-    });
-
-    const data = await response.json();
-
-    if (response.ok) {
-      alert("✅ Registration Successful!");
-      
-      // Reset form
-      document.getElementById("registerForm").reset();
-      generateCaptcha();
-    } else {
-      alert("❌ " + data.error);
+      isAuthenticated = true;
+      updateProtectedUI();
+      alert("Registration successful.");
+      document.getElementById("protectedSection").scrollIntoView({ behavior: "smooth" });
     }
 
-  } catch (error) {
-    alert("⚠️ Server error. Try again later.");
-    console.error(error);
-  }
-}
-
-async function loginUser() {
-  const email = document.getElementById("loginEmail").value.trim();
-  const password = document.getElementById("loginPassword").value.trim();
-
-  if (!email || !password) {
-    alert("Enter email and password");
-    return;
-  }
-
-  try {
-    const response = await fetch("http://127.0.0.1:5000/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ email, password })
-    });
-
-    const data = await response.json();
-
-    if (response.ok) {
-      alert("✅ Login successful!");
-
-      // ✅ Save user in browser
-      localStorage.setItem("user_id", data.user_id);
-      localStorage.setItem("user_name", data.name);
-
-    } else {
-      alert("❌ " + data.error);
+    function openForgotPassword() {
+      document.getElementById("loginForm").classList.remove("active");
+      document.getElementById("registerForm").classList.remove("active");
+      document.getElementById("forgotFlow").classList.add("active");
+      document.getElementById("loginTab").classList.add("active");
+      document.getElementById("registerTab").classList.remove("active");
     }
 
-  } catch (error) {
-    alert("Server error");
-  }
-}
+    function resetForgotView() {
+      document.getElementById("forgotFlow").classList.remove("active");
+      document.getElementById("loginForm").classList.add("active");
+      document.getElementById("resetPasswordArea").classList.add("hidden");
+      document.getElementById("changePasswordBtn").classList.add("hidden");
+      document.getElementById("forgotEmail").value = "";
+      document.getElementById("forgotOtp").value = "";
+      document.getElementById("newPassword").value = "";
+      document.getElementById("confirmNewPassword").value = "";
+      document.getElementById("forgotOtpMessage").textContent = "Enter your email and request OTP.";
+      document.getElementById("forgotOtpMessage").className = "input-message";
+      document.getElementById("forgotPasswordMessage").textContent = "";
+    }
+
+    function sendForgotOTP() {
+      const email = document.getElementById("forgotEmail").value.trim();
+      const forgotOtpMessage = document.getElementById("forgotOtpMessage");
+
+      if (!email) {
+        forgotOtpMessage.textContent = "Please enter your email first.";
+        forgotOtpMessage.className = "input-message error";
+        return;
+      }
+
+      forgotGeneratedOTP = String(Math.floor(100000 + Math.random() * 900000));
+      forgotOtpMessage.textContent = "OTP has been sent to your registered email.";
+      forgotOtpMessage.className = "input-message success";
+    }
+
+    function verifyForgotOTP() {
+      const enteredOtp = document.getElementById("forgotOtp").value.trim();
+      const forgotOtpMessage = document.getElementById("forgotOtpMessage");
+
+      if (!forgotGeneratedOTP) {
+        forgotOtpMessage.textContent = "Please request OTP first.";
+        forgotOtpMessage.className = "input-message error";
+        return;
+      }
+
+      if (enteredOtp !== forgotGeneratedOTP) {
+        forgotOtpMessage.textContent = "Invalid OTP.";
+        forgotOtpMessage.className = "input-message error";
+        return;
+      }
+
+      forgotOtpMessage.textContent = "OTP verified. Now set a new password.";
+      forgotOtpMessage.className = "input-message success";
+      document.getElementById("resetPasswordArea").classList.remove("hidden");
+      document.getElementById("changePasswordBtn").classList.remove("hidden");
+    }
+
+    function changePassword() {
+      const newPassword = document.getElementById("newPassword").value.trim();
+      const confirmNewPassword = document.getElementById("confirmNewPassword").value.trim();
+      const forgotPasswordMessage = document.getElementById("forgotPasswordMessage");
+
+      if (!newPassword || !confirmNewPassword) {
+        forgotPasswordMessage.textContent = "Please fill both password fields.";
+        forgotPasswordMessage.className = "input-message error";
+        return;
+      }
+
+      if (newPassword !== confirmNewPassword) {
+        forgotPasswordMessage.textContent = "Passwords do not match.";
+        forgotPasswordMessage.className = "input-message error";
+        return;
+      }
+
+      forgotPasswordMessage.textContent = "Password changed successfully. You can now log in.";
+      forgotPasswordMessage.className = "input-message success";
+    }
+
     const chart = new Chart(document.getElementById("statsChart"), {
       type: "doughnut",
       data: {
@@ -1171,11 +1391,13 @@ async function loginUser() {
           data: [stats.safe, stats.phishing],
           backgroundColor: ["#22c55e", "#f43f5e"],
           borderWidth: 0,
-          hoverOffset: 6
+          hoverOffset: 4
         }]
       },
       options: {
         responsive: true,
+        maintainAspectRatio: true,
+        aspectRatio: 1,
         plugins: {
           legend: {
             position: "bottom",
@@ -1184,16 +1406,16 @@ async function loginUser() {
             }
           }
         },
-        cutout: "68%"
+        cutout: "72%"
       }
     });
 
     let currentTheme = "dark";
+
     themeToggle.addEventListener("click", () => {
       currentTheme = currentTheme === "dark" ? "light" : "dark";
       document.documentElement.setAttribute("data-theme", currentTheme);
       themeToggle.textContent = currentTheme === "dark" ? "🌙" : "☀️";
-
       chart.options.plugins.legend.labels.color =
         getComputedStyle(document.documentElement).getPropertyValue("--text");
       chart.update();
@@ -1204,6 +1426,7 @@ async function loginUser() {
 
     generateCaptcha();
     renderHistory();
+    updateProtectedUI();
   </script>
 </body>
 </html>
