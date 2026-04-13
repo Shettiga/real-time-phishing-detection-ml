@@ -1234,21 +1234,21 @@
       document.getElementById("captchaMessage").className = "input-message";
     }
 
-    function sendOTP() {
-      const email = document.getElementById("registerEmail").value.trim();
-      const phone = document.getElementById("phoneNumber").value.trim();
-      const otpMessage = document.getElementById("otpMessage");
+    async function sendOTP() {
+  const email = document.getElementById("registerEmail").value;
+  const phone = document.getElementById("phoneNumber").value;
 
-      if (!email || !phone) {
-        otpMessage.textContent = "Please enter both email and phone number first.";
-        otpMessage.className = "input-message error";
-        return;
-      }
+  const response = await fetch("http://127.0.0.1:5000/send_otp", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ email, phone })
+  });
 
-      generatedOTP = String(Math.floor(100000 + Math.random() * 900000));
-      otpMessage.textContent = "OTP has been sent to your email and phone number.";
-      otpMessage.className = "input-message success";
-    }
+  const data = await response.json();
+  alert(data.message);
+}
 
     function registerUser() {
       const firstName = document.getElementById("firstName").value.trim();
