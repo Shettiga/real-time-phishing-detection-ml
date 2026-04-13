@@ -1250,58 +1250,38 @@
   alert(data.message);
 }
 
-    function registerUser() {
-      const firstName = document.getElementById("firstName").value.trim();
-      const lastName = document.getElementById("lastName").value.trim();
-      const dob = document.getElementById("dob").value.trim();
-      const email = document.getElementById("registerEmail").value.trim();
-      const phone = document.getElementById("phoneNumber").value.trim();
-      const otp = document.getElementById("otpInput").value.trim();
-      const captchaInput = document.getElementById("captchaInput").value.trim().toUpperCase();
-      const password = document.getElementById("registerPassword").value.trim();
-      const confirmPassword = document.getElementById("confirmPassword").value.trim();
+    async function registerUser() {
+  const data = {
+    first_name: document.getElementById("firstName").value,
+    last_name: document.getElementById("lastName").value,
+    email: document.getElementById("registerEmail").value,
+    phone: document.getElementById("phoneNumber").value,
+    dob: document.getElementById("dob").value,
+    password: document.getElementById("registerPassword").value,
+    otp: document.getElementById("otpInput").value   // 🔥 VERY IMPORTANT
+  };
 
-      const passwordMessage = document.getElementById("passwordMessage");
-      const captchaMessage = document.getElementById("captchaMessage");
-      const otpMessage = document.getElementById("otpMessage");
+  try {
+    const response = await fetch("http://127.0.0.1:5000/register", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(data)
+    });
 
-      if (!firstName || !lastName || !dob || !email || !phone || !otp || !captchaInput || !password || !confirmPassword) {
-        alert("Please fill all required fields.");
-        return;
-      }
+    const result = await response.json();
 
-      if (!generatedOTP) {
-        otpMessage.textContent = "Please click Get OTP first.";
-        otpMessage.className = "input-message error";
-        return;
-      }
-
-      if (otp !== generatedOTP) {
-        otpMessage.textContent = "Invalid OTP.";
-        otpMessage.className = "input-message error";
-        return;
-      } else {
-        otpMessage.textContent = "OTP verified successfully.";
-        otpMessage.className = "input-message success";
-      }
-
-      if (captchaInput !== generatedCaptcha) {
-        captchaMessage.textContent = "Captcha does not match.";
-        captchaMessage.className = "input-message error";
-        generateCaptcha();
-        return;
-      } else {
-        captchaMessage.textContent = "Captcha verified successfully.";
-        captchaMessage.className = "input-message success";
-      }
-
-      if (!validatePasswords()) return;
-
-      isAuthenticated = true;
-      updateProtectedUI();
-      alert("Registration successful.");
-      document.getElementById("protectedSection").scrollIntoView({ behavior: "smooth" });
+    if (result.error) {
+      alert("❌ " + result.error);
+    } else {
+      alert("✅ " + result.message);
     }
+
+  } catch (error) {
+    alert("❌ Server error");
+  }
+}
 
     function openForgotPassword() {
       document.getElementById("loginForm").classList.remove("active");

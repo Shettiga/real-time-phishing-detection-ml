@@ -7,6 +7,7 @@ import smtplib
 from email.mime.text import MIMEText
 from twilio.rest import Client
 import random
+import bcrypt
 
 app = Flask(__name__)
 CORS(app)
@@ -14,24 +15,30 @@ CORS(app)
 # ------------------ GLOBAL OTP STORAGE ------------------
 otp_storage = {}
 
-# ------------------ LOAD MODEL ------------------
+# ------------------ LOAD ML MODEL ------------------
 model = joblib.load("phishing_model.pkl")
 
-# ------------------ TWILIO SETUP ------------------
-account_sid = "YOUR_TWILIO_SID"
-auth_token = "YOUR_TWILIO_AUTH_TOKEN"
-client = Client(account_sid, auth_token)
+# ------------------ EMAIL CONFIG ------------------
+EMAIL_SENDER = "sudarshan.i.shettigar@gmail.com"
+EMAIL_PASSWORD = "bzwrjjpkjpycbzbd"
+
+# ------------------ TWILIO CONFIG ------------------
+ACCOUNT_SID = "your_sid"
+AUTH_TOKEN = "your_token"
+TWILIO_PHONE = "+1234567890"
+
+client = Client(ACCOUNT_SID, AUTH_TOKEN)
 
 # ------------------ HOME ------------------
 @app.route("/")
 def home():
-    return "PhishGuard Backend Running"
+    return "PhishGuard Backend Running 🚀"
 
 # ------------------ PREDICT ------------------
 @app.route("/predict", methods=["POST"])
 def predict():
     data = request.get_json()
-    url = data["url"]
+    url = data.get("url")
 
     features = extract_features(url)
     prediction = model.predict([features])[0]
@@ -41,118 +48,124 @@ def predict():
 
 # ------------------ SEND EMAIL OTP ------------------
 def send_email_otp(email, otp):
-    sender = "your_email@gmail.com"
-    password = "your_app_password"
-
-    msg = MIMEText(f"Your OTP is {otp}")
-    msg["Subject"] = "OTP Verification"
-    msg["From"] = sender
+    msg = MIMEText(f"Your OTP is: {otp}")
+    msg["Subject"] = "PhishGuard OTP Verification"
+    msg["From"] = EMAIL_SENDER
     msg["To"] = email
 
     server = smtplib.SMTP("smtp.gmail.com", 587)
     server.starttls()
-    server.login(sender, password)
+    server.login(EMAIL_SENDER, EMAIL_PASSWORD)
     server.send_message(msg)
     server.quit()
 
 # ------------------ SEND SMS OTP ------------------
 def send_sms_otp(phone, otp):
     client.messages.create(
-        body=f"Your OTP is {otp}",
-        from_="+1234567890",
+        body=f"Your PhishGuard OTP is: {otp}",
+        from_=TWILIO_PHONE,
         to=phone
     )
 
 # ------------------ SEND OTP API ------------------
 @app.route("/send_otp", methods=["POST"])
 def send_otp():
-    data = request.get_json()
-    email = data.get("email")
-    phone = data.get("phone")
+    try:
+        data = request.get_json()
 
-    if not email or not phone:
-        return jsonify({"error": "Email and phone required"}), 400
+        print("Incoming Data:", data)  # 🔥 DEBUG
 
-    otp = str(random.randint(100000, 999999))
+        email = data.get("email")
+        phone = data.get("phone")
 
-    # store OTP
-    otp_storage[email] = otp
+        if not email or not phone:
+            return jsonify({"error": "Email and phone required"}), 400
 
-    # send OTP
-    send_sms_otp(phone, otp)
-    send_email_otp(email, otp)
+        otp = str(random.randint(100000, 999999))
+        otp_storage[email] = otp
 
-    return jsonify({"message": "OTP sent successfully"})
+        print("OTP:", otp)
 
+        # ❌ TEMP disable external services
+        send_email_otp(email, otp)
+        send_sms_otp(phone, otp)
+
+        return jsonify({"message": "OTP generated", "otp": otp})
+
+    except Exception as e:
+        print("ERROR:", str(e))   # 🔥 VERY IMPORTANT
+        return jsonify({"error": str(e)}), 500
 # ------------------ SEND WELCOME ------------------
 def send_welcome_sms(phone):
     client.messages.create(
-        body="🎉 Registered successfully in PhishGuard!",
-        from_="+1234567890",
+        body="🎉 You are successfully registered in PhishGuard!",
+        from_=TWILIO_PHONE,
         to=phone
     )
 
 def send_welcome_email(email):
-    sender = "your_email@gmail.com"
-    password = "your_app_password"
-
-    msg = MIMEText("🎉 You have successfully registered in PhishGuard!")
+    msg = MIMEText("🎉 Welcome to PhishGuard! Your registration is successful.")
     msg["Subject"] = "Welcome to PhishGuard"
-    msg["From"] = sender
+    msg["From"] = EMAIL_SENDER
     msg["To"] = email
 
     server = smtplib.SMTP("smtp.gmail.com", 587)
     server.starttls()
-    server.login(sender, password)
+    server.login(EMAIL_SENDER, EMAIL_PASSWORD)
     server.send_message(msg)
     server.quit()
 
 # ------------------ REGISTER ------------------
 @app.route("/register", methods=["POST"])
 def register():
-    data = request.get_json()
+    try:
+        data = request.get_json()
+        print("REGISTER DATA:", data)   # 🔥 DEBUG
 
-    email = data.get("email")
-    user_otp = data.get("otp")
+        email = data.get("email")
+        user_otp = data.get("otp")
+        password = data.get("password")
 
-    # OTP verification
-    if otp_storage.get(email) != user_otp:
-        return jsonify({"error": "Invalid OTP"}), 400
+        print("Stored OTP:", otp_storage.get(email))
+        print("User OTP:", user_otp)
 
-    # check existing user
-    if users_collection.find_one({"email": email}):
-        return jsonify({"error": "Email already exists"}), 400
+        # Check OTP
+        if otp_storage.get(email) != user_otp:
+            return jsonify({"error": "Invalid OTP"}), 400
 
-    # save user
-    users_collection.insert_one({
-        "first_name": data.get("first_name"),
-        "last_name": data.get("last_name"),
-        "email": email,
-        "phone": data.get("phone"),
-        "dob": data.get("dob"),
-        "password": data.get("password")
-    })
+        if users_collection.find_one({"email": email}):
+            return jsonify({"error": "Email already exists"}), 400
 
-    # remove OTP
-    otp_storage.pop(email, None)
+        hashed_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
 
-    # send confirmation
-    send_welcome_sms(data.get("phone"))
-    send_welcome_email(email)
+        users_collection.insert_one({
+            "first_name": data.get("first_name"),
+            "last_name": data.get("last_name"),
+            "email": email,
+            "phone": data.get("phone"),
+            "dob": data.get("dob"),
+            "password": hashed_password
+        })
 
-    return jsonify({"message": "User registered successfully"})
+        otp_storage.pop(email, None)
+
+        return jsonify({"message": "User registered successfully"})
+
+    except Exception as e:
+        print("REGISTER ERROR:", str(e))   # 🔥 IMPORTANT
+        return jsonify({"error": str(e)}), 500
 
 # ------------------ LOGIN ------------------
 @app.route("/login", methods=["POST"])
 def login():
     data = request.get_json()
 
-    user = users_collection.find_one({
-        "email": data.get("email"),
-        "password": data.get("password")
-    })
+    email = data.get("email")
+    password = data.get("password")
 
-    if user:
+    user = users_collection.find_one({"email": email})
+
+    if user and bcrypt.checkpw(password.encode(), user["password"]):
         return jsonify({
             "message": "Login successful",
             "user_id": str(user["_id"]),
