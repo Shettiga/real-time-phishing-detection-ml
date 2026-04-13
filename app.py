@@ -5,6 +5,7 @@ from src.feature_extraction import extract_features
 from backend.db import users_collection
 import sqlite3
 from pymongo import MongoClient
+from backend.db import history_collection
 
 app = Flask(__name__)
 CORS(app)
@@ -35,7 +36,6 @@ def predict():
 def register():
     data = request.get_json()
 
-    # ✅ FIXED KEYS
     first_name = data.get("first_name")
     last_name = data.get("last_name")
     email = data.get("email")
@@ -43,34 +43,21 @@ def register():
     dob = data.get("dob")
     password = data.get("password")
 
-    try:
-        conn = sqlite3.connect("users.db")
-        cursor = conn.cursor()
+    # 🔥 Check if user exists
+    if users_collection.find_one({"email": email}):
+        return jsonify({"error": "Email already exists"}), 400
 
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                first_name TEXT,
-                last_name TEXT,
-                email TEXT UNIQUE,
-                phone TEXT,
-                dob TEXT,
-                password TEXT
-            )
-        """)
+    # Insert into MongoDB
+    users_collection.insert_one({
+        "first_name": first_name,
+        "last_name": last_name,
+        "email": email,
+        "phone": phone,
+        "dob": dob,
+        "password": password
+    })
 
-        cursor.execute("""
-            INSERT INTO users (first_name, last_name, email, phone, dob, password)
-            VALUES (?, ?, ?, ?, ?, ?)
-        """, (first_name, last_name, email, phone, dob, password))
-
-        conn.commit()
-        conn.close()
-
-        return jsonify({"message": "User registered successfully"})
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
+    return jsonify({"message": "User registered successfully"})
 
 # ------------------ LOGIN ------------------
 @app.route("/login", methods=["POST"])
@@ -80,22 +67,33 @@ def login():
     email = data.get("email")
     password = data.get("password")
 
-    conn = sqlite3.connect("users.db")
-    cursor = conn.cursor()
-
-    cursor.execute("SELECT * FROM users WHERE email=? AND password=?", (email, password))
-    user = cursor.fetchone()
-
-    conn.close()
+    user = users_collection.find_one({
+        "email": email,
+        "password": password
+    })
 
     if user:
         return jsonify({
             "message": "Login successful",
-            "user_id": user[0],  # ID
-            "name": user[1]      # first_name
+            "user_id": str(user["_id"]),
+            "name": user["first_name"]
         })
     else:
         return jsonify({"error": "Invalid email or password"}), 401
+    
+# ------------------ SAVE SCAN ------------------
+@app.route("/save_scan", methods=["POST"])
+def save_scan():
+    data = request.get_json()
+
+    history_collection.insert_one({
+        "user_id": data.get("user_id"),
+        "url": data.get("url"),
+        "result": data.get("result")
+    })
+
+    return jsonify({"message": "Saved"})
+
 # ------------------ RUN ------------------
 if __name__ == "__main__":
     app.run(debug=True)
