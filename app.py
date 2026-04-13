@@ -4,6 +4,7 @@ import joblib
 from src.feature_extraction import extract_features
 from backend.db import users_collection
 import sqlite3
+from pymongo import MongoClient
 
 app = Flask(__name__)
 CORS(app)
