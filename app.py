@@ -5,9 +5,14 @@ from src.feature_extraction import extract_features
 from backend.db import users_collection, history_collection
 import smtplib
 from email.mime.text import MIMEText
-from twilio.rest import Client
 import random
 import bcrypt
+from urllib.parse import urlparse
+
+try:
+    from twilio.rest import Client
+except Exception:
+    Client = None
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": ["http://127.0.0.1:5500"]}})
@@ -18,6 +23,35 @@ otp_storage = {}
 # ------------------ LOAD ML MODEL ------------------
 model = joblib.load("phishing_model.pkl")
 
+
+def _normalize_url(url):
+    candidate = (url or "").strip()
+    if not candidate:
+        return ""
+    if not candidate.startswith(("http://", "https://")):
+        candidate = "http://" + candidate
+    return candidate
+
+
+def _is_valid_url(url):
+    parsed = urlparse(url)
+    return bool(parsed.scheme and parsed.netloc)
+
+
+def _is_phishing_prediction(prediction_value):
+    classes = set(model.classes_.tolist()) if hasattr(model, "classes_") else set()
+
+    # Dataset format typically uses {-1, 1}: -1 phishing, 1 legitimate.
+    if classes == {-1, 1}:
+        return int(prediction_value) == -1
+
+    # Common binary format {0, 1}: 1 phishing.
+    if classes == {0, 1}:
+        return int(prediction_value) == 1
+
+    # Fallback for unknown label encodings.
+    return str(prediction_value).strip().lower() in {"1", "phishing", "malicious", "true"}
+
 # ------------------ EMAIL CONFIG ------------------
 EMAIL_SENDER = "sudarshan.i.shettigar@gmail.com"
 EMAIL_PASSWORD = "bzwrjjpkjpycbzbd"
@@ -27,7 +61,7 @@ ACCOUNT_SID = "your_sid"
 AUTH_TOKEN = "your_token"
 TWILIO_PHONE = "+1234567890"
 
-client = Client(ACCOUNT_SID, AUTH_TOKEN)
+client = Client(ACCOUNT_SID, AUTH_TOKEN) if Client else None
 
 # ------------------ HOME ------------------
 @app.route("/")
@@ -38,13 +72,19 @@ def home():
 @app.route("/predict", methods=["POST"])
 def predict():
     data = request.get_json()
-    url = data.get("url")
+    url = _normalize_url(data.get("url"))
+
+    if not _is_valid_url(url):
+        return jsonify({"error": "Invalid URL format"}), 400
 
     features = extract_features(url)
+    if not features:
+        return jsonify({"error": "Unable to extract URL features"}), 400
+
     prediction = model.predict([features])[0]
 
-    result = "Phishing Website" if prediction == 1 else "Safe Website"
-    return jsonify({"prediction": result})
+    result = "Phishing Website" if _is_phishing_prediction(prediction) else "Safe Website"
+    return jsonify({"prediction": result, "normalized_url": url})
 
 # ------------------ SEND EMAIL OTP ------------------
 def send_email_otp(email, otp):
@@ -61,17 +101,11 @@ def send_email_otp(email, otp):
 
 # ------------------ SEND SMS OTP ------------------
 def send_sms_otp(phone, otp):
-    try:
-        message = client.messages.create(
-            body=f"Your PhishGuard OTP is: {otp}",
-            from_=TWILIO_PHONE,  # Corrected to use TWILIO_PHONE variable
-            to=phone
-        )
-        print("SMS sent successfully. SID:", message.sid)  # 🔥 DEBUG
-        return message.sid
-    except Exception as e:
-        print("Failed to send SMS:", str(e))  # 🔥 DEBUG
-        raise
+    client.messages.create(
+        body=f"Your PhishGuard OTP is: {otp}",
+        from_=TWILIO_PHONE,
+        to=phone
+    )
 
 # ------------------ SEND OTP API ------------------
 @app.route("/send_otp", methods=["POST"])
@@ -116,6 +150,9 @@ def send_otp():
         return jsonify({"error": str(e)}), 500
 # ------------------ SEND WELCOME ------------------
 def send_welcome_sms(phone):
+    if client is None:
+        return
+
     client.messages.create(
         body="🎉 You are successfully registered in PhishGuard!",
         from_=TWILIO_PHONE,
