@@ -367,7 +367,7 @@
   <div class="container">
     <nav class="navbar">
       <div class="brand">
-        <div class="logo">PG</div>
+        <div class="logo">🛡</div>
         <div>
           <h1>PhishGuard Dashboard</h1>
           <p id="welcomeText">Welcome</p>
@@ -375,9 +375,9 @@
       </div>
 
       <div class="actions">
-        <button class="btn btn-outline" id="themeToggle">Theme</button>
-        <button class="btn btn-outline" onclick="window.location.href='index.html'">Home</button>
-        <button class="btn btn-primary" onclick="logoutUser()">Logout</button>
+        <button class="btn btn-outline" id="themeToggle">🌙</button>
+        <button class="btn btn-outline" onclick="window.location.href='index.html'">⌂ Home</button>
+        <button class="btn btn-primary" onclick="logoutUser()">↩ Logout</button>
       </div>
     </nav>
 
@@ -390,18 +390,18 @@
       <div class="card">
         <div class="card-head">
           <div>
-            <h2>URL Scanner</h2>
+            <h2>🔎 URL Scanner</h2>
             <p class="muted">Paste a URL and run phishing detection using your backend model.</p>
           </div>
-          <div class="badge">Live Scan</div>
+          <div class="badge">⚡ Live Scan</div>
         </div>
 
         <div class="scan-form">
           <input type="text" id="urlInput" placeholder="Enter URL, e.g. https://example.com/login" />
-          <button class="btn btn-primary" onclick="checkURL()">Check URL</button>
+          <button class="btn btn-primary" onclick="checkURL()">✓ Check URL</button>
         </div>
 
-        <div id="result" class="status status-muted">Waiting for scan</div>
+        <div id="result" class="status status-muted">⏳ Waiting for scan</div>
 
         <div class="spinner-box" id="loadingBox">
           <div class="spinner"></div>
@@ -410,10 +410,10 @@
 
         <div class="card-head" style="margin-top:20px; margin-bottom:10px;">
           <div>
-            <h2>Recent Checked URLs</h2>
+            <h2>🧾 Recent Checked URLs</h2>
             <p class="muted">Latest scans from your current browser session.</p>
           </div>
-          <div class="badge">History</div>
+          <div class="badge">🕘 History</div>
         </div>
 
         <div class="history-list" id="historyList"></div>
@@ -422,27 +422,27 @@
       <div class="card">
         <div class="card-head">
           <div>
-            <h2>Detection Dashboard</h2>
+            <h2>📊 Detection Dashboard</h2>
             <p class="muted">Safe vs phishing insights from your recent checks.</p>
           </div>
-          <div class="badge">Stats</div>
+          <div class="badge">📈 Stats</div>
         </div>
 
         <div class="stats-grid">
           <div class="stat-box">
-            <span>Total Scans</span>
+            <span>🧮 Total Scans</span>
             <strong id="totalScans">0</strong>
           </div>
           <div class="stat-box">
-            <span>Safe URLs</span>
+            <span>✅ Safe URLs</span>
             <strong id="safeCount">0</strong>
           </div>
           <div class="stat-box">
-            <span>Phishing URLs</span>
+            <span>🚨 Phishing URLs</span>
             <strong id="phishingCount">0</strong>
           </div>
           <div class="stat-box">
-            <span>Threat Rate</span>
+            <span>⚠ Threat Rate</span>
             <strong id="threatRate">0%</strong>
           </div>
         </div>
@@ -559,13 +559,13 @@
 
       if (!url) {
         result.className = "status status-danger";
-        result.textContent = "Enter a URL first";
+        result.textContent = "⚠ Enter a URL first";
         return;
       }
 
       loadingBox.style.display = "flex";
       result.className = "status status-muted";
-      result.textContent = "Checking...";
+      result.textContent = "⏳ Checking...";
 
       try {
         const response = await fetch("http://127.0.0.1:5000/predict", {
@@ -615,7 +615,7 @@
         });
       } catch (error) {
         result.className = "status status-danger";
-        result.textContent = "Error connecting to server";
+        result.textContent = "✖ Error connecting to server";
       } finally {
         loadingBox.style.display = "none";
       }
@@ -629,11 +629,12 @@
     }
 
     let currentTheme = "dark";
+    themeToggle.textContent = currentTheme === "dark" ? "🌙" : "☀️";
 
     themeToggle.addEventListener("click", () => {
       currentTheme = currentTheme === "dark" ? "light" : "dark";
       document.documentElement.setAttribute("data-theme", currentTheme);
-      themeToggle.textContent = currentTheme === "dark" ? "Theme" : "Light";
+      themeToggle.textContent = currentTheme === "dark" ? "🌙" : "☀️";
       chart.options.plugins.legend.labels.color =
         getComputedStyle(document.documentElement).getPropertyValue("--text");
       chart.update();
