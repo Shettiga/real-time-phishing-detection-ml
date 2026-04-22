@@ -576,6 +576,12 @@
         });
 
         const data = await response.json();
+        if (!response.ok || !data.prediction) {
+          result.className = "status status-danger";
+          result.textContent = `✖ ${data.error || "Prediction failed"}`;
+          return;
+        }
+
         const rawPrediction = String(data.prediction).toLowerCase();
         const finalPrediction = rawPrediction.includes("phish") ? "Phishing" : "Safe";
 
