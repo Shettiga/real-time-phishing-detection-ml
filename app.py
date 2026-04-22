@@ -10,7 +10,7 @@ import random
 import bcrypt
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": ["http://127.0.0.1:5500"]}})
 
 # ------------------ GLOBAL OTP STORAGE ------------------
 otp_storage = {}
@@ -61,11 +61,17 @@ def send_email_otp(email, otp):
 
 # ------------------ SEND SMS OTP ------------------
 def send_sms_otp(phone, otp):
-    client.messages.create(
-        body=f"Your PhishGuard OTP is: {otp}",
-        from_=TWILIO_PHONE,
-        to=phone
-    )
+    try:
+        message = client.messages.create(
+            body=f"Your PhishGuard OTP is: {otp}",
+            from_=TWILIO_PHONE,  # Corrected to use TWILIO_PHONE variable
+            to=phone
+        )
+        print("SMS sent successfully. SID:", message.sid)  # 🔥 DEBUG
+        return message.sid
+    except Exception as e:
+        print("Failed to send SMS:", str(e))  # 🔥 DEBUG
+        raise
 
 # ------------------ SEND OTP API ------------------
 @app.route("/send_otp", methods=["POST"])
@@ -75,22 +81,35 @@ def send_otp():
 
         print("Incoming Data:", data)  # 🔥 DEBUG
 
-        email = data.get("email")
-        phone = data.get("phone")
-
-        if not email or not phone:
-            return jsonify({"error": "Email and phone required"}), 400
-
+        method = data.get("method")
         otp = str(random.randint(100000, 999999))
-        otp_storage[email] = otp
 
-        print("OTP:", otp)
+        if not method:
+            return jsonify({"error": "Method is required (email or phone)"}), 400
 
-        # ❌ TEMP disable external services
-        send_email_otp(email, otp)
-        send_sms_otp(phone, otp)
+        if method == "email":
+            email = data.get("email")
+            if not email:
+                return jsonify({"error": "Email is required for email OTP"}), 400
 
-        return jsonify({"message": "OTP generated", "otp": otp})
+            otp_storage[email] = otp
+            send_email_otp(email, otp)
+            return jsonify({"message": "OTP sent to email successfully"}), 200
+
+        elif method == "phone":
+            phone = data.get("phone")
+            if not phone:
+                return jsonify({"error": "Phone number is required for phone OTP"}), 400
+
+            if not str(phone).startswith("+"):
+                phone = f"+{phone}"
+
+            otp_storage[phone] = otp
+            send_sms_otp(phone, otp)
+            return jsonify({"message": "OTP sent to phone successfully"}), 200
+
+        else:
+            return jsonify({"error": "Invalid method. Use 'email' or 'phone'"}), 400
 
     except Exception as e:
         print("ERROR:", str(e))   # 🔥 VERY IMPORTANT
