@@ -1120,7 +1120,6 @@
     let forgotGeneratedOTP = "";
     let isAuthenticated = false;
     let generatedCaptcha = "";
-    let registerGeneratedOTP = "";
 
     function getSelectedOtpMethod() {
       return document.querySelector('input[name="otpMethod"]:checked')?.value || "email";
@@ -1464,44 +1463,50 @@
         return;
       }
 
-      registerGeneratedOTP = String(Math.floor(100000 + Math.random() * 900000));
-
       try {
         if (method === "email") {
-          await fetch("http://127.0.0.1:5000/send-otp", {
+          const response = await fetch("http://127.0.0.1:5000/send_otp", {
             method: "POST",
             headers: {
               "Content-Type": "application/json"
             },
             body: JSON.stringify({
               email,
-              otp: registerGeneratedOTP,
               method: "email"
             })
           });
 
-          otpMessage.textContent = "OTP sent to your email successfully.";
+          const data = await response.json();
+          if (!response.ok) {
+            throw new Error(data.error || "Failed to send email OTP");
+          }
+
+          otpMessage.textContent = data.message || "OTP sent to your email successfully.";
           otpMessage.className = "input-message success";
         } else {
           const formattedPhone = formatPhoneNumber(phone);
 
-          await fetch("http://127.0.0.1:5000/send-otp", {
+          const response = await fetch("http://127.0.0.1:5000/send_otp", {
             method: "POST",
             headers: {
               "Content-Type": "application/json"
             },
             body: JSON.stringify({
               phone: formattedPhone,
-              otp: registerGeneratedOTP,
               method: "phone"
             })
           });
 
-          otpMessage.textContent = "OTP sent to your phone successfully.";
+          const data = await response.json();
+          if (!response.ok) {
+            throw new Error(data.error || "Failed to send phone OTP");
+          }
+
+          otpMessage.textContent = data.message || "OTP sent to your phone successfully.";
           otpMessage.className = "input-message success";
         }
       } catch (error) {
-        otpMessage.textContent = "Failed to send OTP.";
+        otpMessage.textContent = error.message || "Failed to send OTP.";
         otpMessage.className = "input-message error";
       }
     }
@@ -1530,12 +1535,6 @@
         return;
       }
 
-      if (otp !== registerGeneratedOTP) {
-        passwordMessage.textContent = "Invalid OTP.";
-        passwordMessage.className = "input-message error";
-        return;
-      }
-
       if (captchaInput.toUpperCase() !== generatedCaptcha) {
         captchaMessage.textContent = "Captcha does not match.";
         captchaMessage.className = "input-message error";
@@ -1552,33 +1551,39 @@
       }
 
       try {
+        const method = getSelectedOtpMethod();
         const response = await fetch("http://127.0.0.1:5000/register", {
           method: "POST",
           headers: {
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            firstName,
-            lastName,
+            first_name: firstName,
+            last_name: lastName,
             dob,
             gender,
             email,
             phone: formatPhoneNumber(phone),
+            otp,
+            method,
             password
           })
         });
 
         const data = await response.json();
 
+        if (!response.ok) {
+          throw new Error(data.error || "Registration failed.");
+        }
+
         passwordMessage.textContent = data.message || "Registration successful.";
         passwordMessage.className = "input-message success";
 
         document.getElementById("registerForm").reset();
-        registerGeneratedOTP = "";
         generateCaptcha();
         updateOtpMethodUI();
       } catch (error) {
-        passwordMessage.textContent = "Registration failed.";
+        passwordMessage.textContent = error.message || "Registration failed.";
         passwordMessage.className = "input-message error";
       }
     }

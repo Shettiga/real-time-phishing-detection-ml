@@ -7,6 +7,7 @@ import smtplib
 from email.mime.text import MIMEText
 import random
 import bcrypt
+import os
 from urllib.parse import urlparse
 
 try:
@@ -19,6 +20,16 @@ CORS(app, resources={r"/*": {"origins": ["http://127.0.0.1:5500"]}})
 
 # ------------------ GLOBAL OTP STORAGE ------------------
 otp_storage = {}
+
+
+def _build_otp_key(method, email=None, phone=None):
+    """Create a stable OTP storage key based on the selected delivery method."""
+    if method == "phone":
+        normalized_phone = str(phone or "").strip()
+        if normalized_phone and not normalized_phone.startswith("+"):
+            normalized_phone = f"+{normalized_phone}"
+        return f"phone:{normalized_phone}"
+    return f"email:{str(email or '').strip().lower()}"
 
 # ------------------ LOAD ML MODEL ------------------
 model = joblib.load("phishing_model.pkl")
@@ -57,11 +68,12 @@ EMAIL_SENDER = "sudarshan.i.shettigar@gmail.com"
 EMAIL_PASSWORD = "bzwrjjpkjpycbzbd"
 
 # ------------------ TWILIO CONFIG ------------------
-ACCOUNT_SID = "your_sid"
-AUTH_TOKEN = "your_token"
-TWILIO_PHONE = "+1234567890"
+ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID", "")
+AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN", "")
+TWILIO_PHONE = os.getenv("TWILIO_PHONE_NUMBER", "")
+SMS_DEV_FALLBACK = os.getenv("SMS_DEV_FALLBACK", "true").lower() == "true"
 
-client = Client(ACCOUNT_SID, AUTH_TOKEN) if Client else None
+client = Client(ACCOUNT_SID, AUTH_TOKEN) if Client and ACCOUNT_SID and AUTH_TOKEN else None
 
 # ------------------ HOME ------------------
 @app.route("/")
@@ -101,46 +113,59 @@ def send_email_otp(email, otp):
 
 # ------------------ SEND SMS OTP ------------------
 def send_sms_otp(phone, otp):
+    if client is None or not TWILIO_PHONE:
+        if SMS_DEV_FALLBACK:
+            # Local development fallback when Twilio is not configured.
+            print(f"[DEV SMS FALLBACK] OTP for {phone}: {otp}")
+            return False
+        raise RuntimeError("Twilio credentials are not configured. Set TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_PHONE_NUMBER.")
+
     client.messages.create(
         body=f"Your PhishGuard OTP is: {otp}",
         from_=TWILIO_PHONE,
         to=phone
     )
+    return True
 
 # ------------------ SEND OTP API ------------------
 @app.route("/send_otp", methods=["POST"])
+@app.route("/send-otp", methods=["POST"])
 def send_otp():
     try:
         data = request.get_json()
 
-        print("Incoming Data:", data)  # 🔥 DEBUG
-
         method = data.get("method")
-        otp = str(random.randint(100000, 999999))
+        provided_otp = data.get("otp")
+        otp = str(provided_otp).strip() if provided_otp else str(random.randint(100000, 999999))
 
         if not method:
             return jsonify({"error": "Method is required (email or phone)"}), 400
 
         if method == "email":
-            email = data.get("email")
+            email = (data.get("email") or "").strip().lower()
             if not email:
                 return jsonify({"error": "Email is required for email OTP"}), 400
 
-            otp_storage[email] = otp
+            otp_key = _build_otp_key("email", email=email)
+            otp_storage[otp_key] = otp
             send_email_otp(email, otp)
             return jsonify({"message": "OTP sent to email successfully"}), 200
 
         elif method == "phone":
-            phone = data.get("phone")
+            phone = (data.get("phone") or "").strip()
             if not phone:
                 return jsonify({"error": "Phone number is required for phone OTP"}), 400
 
             if not str(phone).startswith("+"):
                 phone = f"+{phone}"
 
-            otp_storage[phone] = otp
-            send_sms_otp(phone, otp)
-            return jsonify({"message": "OTP sent to phone successfully"}), 200
+            otp_key = _build_otp_key("phone", phone=phone)
+            otp_storage[otp_key] = otp
+            sms_sent = send_sms_otp(phone, otp)
+            if sms_sent:
+                return jsonify({"message": "OTP sent to phone successfully"}), 200
+
+            return jsonify({"message": "Twilio is not configured. OTP generated in backend terminal for local testing."}), 200
 
         else:
             return jsonify({"error": "Invalid method. Use 'email' or 'phone'"}), 400
@@ -176,17 +201,19 @@ def send_welcome_email(email):
 def register():
     try:
         data = request.get_json()
-        print("REGISTER DATA:", data)   # 🔥 DEBUG
-
-        email = data.get("email")
-        user_otp = data.get("otp")
+        email = (data.get("email") or "").strip().lower()
+        phone = (data.get("phone") or "").strip()
+        if phone and not phone.startswith("+"):
+            phone = f"+{phone}"
+        method = (data.get("method") or "email").strip().lower()
+        user_otp = str(data.get("otp") or "").strip()
         password = data.get("password")
 
-        print("Stored OTP:", otp_storage.get(email))
-        print("User OTP:", user_otp)
+        otp_key = _build_otp_key(method, email=email, phone=phone)
+        stored_otp = otp_storage.get(otp_key)
 
         # Check OTP
-        if otp_storage.get(email) != user_otp:
+        if not stored_otp or stored_otp != user_otp:
             return jsonify({"error": "Invalid OTP"}), 400
 
         if users_collection.find_one({"email": email}):
@@ -198,12 +225,12 @@ def register():
             "first_name": data.get("first_name"),
             "last_name": data.get("last_name"),
             "email": email,
-            "phone": data.get("phone"),
+            "phone": phone,
             "dob": data.get("dob"),
             "password": hashed_password
         })
 
-        otp_storage.pop(email, None)
+        otp_storage.pop(otp_key, None)
 
         return jsonify({"message": "User registered successfully"})
 
